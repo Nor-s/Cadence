@@ -96,7 +96,7 @@ struct SvgExample : tvgexam::Example
 
 		// Background
 		auto shape = tvg::Shape::gen();
-		shape->appendRect(0, 0, w, h);
+		shape->appendRect(0, 0, (float) w, (float) h);
 		shape->fill(255, 255, 255);
 
 		canvas->push(shape);

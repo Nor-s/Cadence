@@ -50,7 +50,7 @@ struct AnimationExample : tvgexam::Example
 
 		// Background
 		auto shape = tvg::Shape::gen();
-		shape->appendRect(0, 0, w, h);
+		shape->appendRect(0, 0, (float) w, (float) h);
 		shape->fill(50, 50, 50);
 
 		canvas->push(shape);

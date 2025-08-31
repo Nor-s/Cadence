@@ -87,12 +87,12 @@ struct ParticleExample : tvgexam::Example
 		clouds.push_back({cloud3, 1200, 200, 0.075f, size});
 
 		auto darkness = tvg::Shape::gen();
-		darkness->appendRect(0, 0, w, h);
+		darkness->appendRect(0, 0, (float) w, (float) h);
 		darkness->fill(0, 0, 0, 150);
 		canvas->push(darkness);
 
 		// rain drops
-		size = w / COUNT;
+		size = (float) w / COUNT;
 		raindrops.reserve(COUNT);
 
 		for (int i = 0; i < COUNT; ++i)
@@ -128,7 +128,7 @@ struct ParticleExample : tvgexam::Example
 			p.x -= p.speed;
 			if (p.x + p.size < 0)
 			{
-				p.x = w;
+				p.x = (float) w;
 			}
 			p.obj->translate(p.x, p.y);
 		}

@@ -42,7 +42,7 @@ struct EmptyExample : tvgexam::Example
 		{
 			// background
 			auto shape = tvg::Shape::gen();
-			shape->appendRect(0, 0, w, h);
+			shape->appendRect(0, 0, (float) w, (float) h);
 			shape->fill(244, 244, 244);
 			canvas->push(shape);
 		}
