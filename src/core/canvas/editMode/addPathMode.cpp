@@ -1,13 +1,10 @@
 #include "addPathMode.h"
 #include "scene/ui/controlBox.h"
 #include "canvas/animationCreatorCanvas.h"
+#include "scene/component/components.h"
+
 namespace core
 {
-
-AddPathMode::PathPointWithControl::PathPointWithControl(const PathPoint& p, std::unique_ptr<ControlBox> control)
-	: point(p), controlBox(std::move(control))
-{
-}
 
 AddPathMode::AddPathMode(AnimationCreatorCanvas* canvas)
 {
@@ -23,31 +20,40 @@ bool AddPathMode::onStarClickLefttMouse(const InputValue& inputValue)
 {
 	mContext.beforePos = mContext.currentPos = mContext.startPos = inputValue.get<Vec2>();
 	auto& path = mContext.pathList;
+	auto& control = mContext.controlList;
+	auto* scene = rCanvas->mOverlayScene.get();
 
-    // todo:: pick control?
-    mContext.clicked = nullptr;
-    for(auto& p: mContext.pathList)
-    {
-        if (p.controlBox->onLeftDown(mContext.currentPos))
-        {
-            mContext.clicked = &p;
-            return true;
-        }
-    }
+	for (auto& p : path)
+	{
+		// scene->createPolygonFillLayer
+	}
 
-    // if no pick
-    {
-        const float width =  CommonSetting::Width_DefaultPathPointControlBox;
-        auto control = std::make_unique<ControlBox>(rCanvas->mOverlayScene.get(), mContext.currentPos, Vec2{width, width}, ControlBox::Type::Move, ControlBox::ShapeType::FillStrokeEllipse);
-        auto pathPoint = PathPoint{.point=mContext.currentPos};
-	    path.emplace_back(pathPoint, std::move(control));
-        path.back().controlBox->setOnLeftDrag(MakeLambda([ctx=&mContext, p=&path.back()](){
-            auto delta = (ctx->currentPos - ctx->beforePos);
-            p->controlBox->moveByDelta(delta);
-            p->point.point = p->point.point + delta;
-            return true;
-        }));
-    }
+	// todo:: pick control?
+	mContext.clickedControl = nullptr;
+	for (auto& c : control)
+	{
+		if (c->onLeftDown(mContext.currentPos))
+		{
+			mContext.clickedControl = c.get();
+			return true;
+		}
+	}
+
+	// if no pick
+	{
+		path.push_back(PathPoint{.base = mContext.currentPos});
+		control.push_back(std::make_unique<ControlBox>(
+			rCanvas->mOverlayScene.get(), mContext.currentPos, CommonSetting::Width_DefaultPathPointControlBox,
+			ControlBox::Type::Move, ControlBox::ShapeType::FillStrokeEllipse));
+		control.back()->setOnLeftDrag(MakeLambda(
+			[ctx = &mContext, p = &path.back(), c = control.back().get()]()
+			{
+				auto delta = (ctx->currentPos - ctx->beforePos);
+				c->moveByDelta(delta);
+				p->base = p->base + delta;
+				return true;
+			}));
+	}
 
 	return false;
 }
@@ -55,24 +61,24 @@ bool AddPathMode::onStarClickLefttMouse(const InputValue& inputValue)
 bool AddPathMode::onDragLeftMouse(const InputValue& inputValue)
 {
 	mContext.beforePos = mContext.currentPos;
-    mContext.currentPos = inputValue.get<Vec2>();
+	mContext.currentPos = inputValue.get<Vec2>();
 
-    if (mContext.clicked)
-    {
-        return mContext.clicked->controlBox->onLeftDrag();
-    }
-    auto len = length2(mContext.currentPos - mContext.startPos);
+	if (mContext.clickedControl)
+	{
+		return mContext.clickedControl->onLeftDrag();
+	}
+	auto len = length2(mContext.currentPos - mContext.startPos);
 	auto& path = mContext.pathList;
-    if (len > CommonSetting::Threshold_AddPathModeChangeCurve)
-    {
-        path.back().point.type = PathPoint::Type::Curve;
-        mContext.currentEditType = PathPoint::Type::Curve; 
-    }
-    else 
-    {
-        path.back().point.type = PathPoint::Type::Line;
-        mContext.currentEditType = PathPoint::Type::Line; 
-    }
+	if (len > CommonSetting::Threshold_AddPathModeChangeCurve)
+	{
+		path.back().type = PathPoint::Type::Curve;
+		mContext.currentEditType = PathPoint::Type::Curve;
+	}
+	else
+	{
+		path.back().type = PathPoint::Type::Line;
+		mContext.currentEditType = PathPoint::Type::Line;
+	}
 
 	return false;
 }
@@ -84,7 +90,7 @@ bool AddPathMode::onMoveMouse(const InputValue& inputValue)
 
 bool AddPathMode::onEndLeftMouse(const InputValue& inputValue)
 {
-    mContext.clicked = nullptr;
+	mContext.clickedControl = nullptr;
 	return false;
 }
 
@@ -95,6 +101,7 @@ bool AddPathMode::onInputAttach(const InputValue& inputValue)
 
 bool AddPathMode::onInputDetach(const InputValue& inputValue)
 {
+	mContext.clickedControl = nullptr;
 	return false;
 }
 

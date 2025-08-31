@@ -151,6 +151,13 @@ struct ElipsePathComponent
 	VectorKeyFrame positionKeyframes;
 	VectorKeyFrame scaleKeyframes;
 };
+
+struct PathListComponent
+{
+	PathList path{};
+	Vec2 center{};
+};
+
 struct PolygonPathComponent
 {
 	int points{3};
@@ -158,11 +165,14 @@ struct PolygonPathComponent
 	float outerRadius{100.0f};
 	Vec2 position{0.0f, 0.0f};
 
+	PathListComponent path;
+
 	IntegerKeyFrame pointsKeyframes;
 	FloatKeyFrame rotationKeyframes;
 	FloatKeyFrame outerRadiusKeyframes;
 	VectorKeyFrame positionKeyframes;
 };
+
 struct StarPolygonPathComponent
 {
 	int points{5};
@@ -171,18 +181,13 @@ struct StarPolygonPathComponent
 	float innerRadius{100.0f};
 	Vec2 position{0.0f, 0.0f};
 
+	PathListComponent path;
+
 	IntegerKeyFrame pointsKeyframes;
 	FloatKeyFrame rotationKeyframes;
 	FloatKeyFrame outerRadiusKeyframes;
 	FloatKeyFrame innerRadiusKeyframes;
 	VectorKeyFrame positionKeyframes;
-};
-
-struct PathComponent
-{
-	std::vector<tvg::PathCommand> pathCommands;
-	std::vector<tvg::Point> points;
-	tvg::Point center;
 };
 
 struct TransformComponent
@@ -305,6 +310,7 @@ struct TransformKeyframeComponent
 	VectorKeyFrame scaleKeyframes;
 	FloatKeyFrame rotationKeyframes;
 };
+
 struct SolidFillComponent
 {
 	Vec3 color = CommonSetting::Color_DefaultFill;
@@ -324,6 +330,161 @@ struct StrokeComponent
 	FloatKeyFrame widthKeyframe;
 	FloatKeyFrame alphaKeyframe;
 };
+
+}	 // namespace core
+
+// update component
+namespace core
+{
+static void Reset(ShapeComponent& shape)
+{
+	shape.shape->reset();
+}
+
+static void Update(ShapeComponent& shape, TransformComponent& transform)
+{
+	transform.update();
+	shape.shape->transform(transform.transform);
+}
+
+static void Update(ShapeComponent& shape, PathListComponent& path)
+{
+	Reset(shape);
+	if (!path.path.empty())
+	{
+		std::vector<tvg::PathCommand> types;
+		std::vector<tvg::Point> points;
+		for (int i = 0; i < path.path.size(); i++)
+		{
+			auto& p = path.path.at(i);
+			switch (p.type)
+			{
+				case PathPoint::Type::Close:
+				{
+					types.emplace_back(tvg::PathCommand::Close);
+					break;
+				}
+				case PathPoint::Type::Move:
+				{
+					types.emplace_back(tvg::PathCommand::MoveTo);
+					points.push_back(tvg::Point{p.base.x, p.base.y});
+					break;
+				}
+				case PathPoint::Type::Curve:
+				{
+					assert(i != 0);
+
+					auto& left = path.path[i - 1];
+					auto leftP = left.base + left.deltaRightControl;
+					auto rightP = p.base + p.deltaLeftControl;
+
+					types.emplace_back(tvg::PathCommand::CubicTo);
+					points.push_back(tvg::Point{leftP.x, leftP.y});
+					points.push_back(tvg::Point{rightP.x, rightP.y});
+					points.push_back(tvg::Point{p.base.x, p.base.y});
+					break;
+				}
+				case PathPoint::Type::Line:
+				{
+					types.emplace_back(tvg::PathCommand::LineTo);
+					points.push_back(tvg::Point{p.base.x, p.base.y});
+					break;
+				}
+			}
+		}
+		shape.shape->appendPath(types.data(), types.size(), points.data(), points.size());
+	}
+}
+
+static void Update(ShapeComponent& shape, StarPolygonPathComponent& path)
+{
+	const float start = -90.0f;
+	const float step = 360.0f / (path.points * 2.0f);
+	const int iterCount = 2 * path.points;
+
+	path.path.path.clear();
+
+	for (int i = 0; i < iterCount; ++i)
+	{
+		const bool isOuter = (i % 2 == 0);
+		const float r = isOuter ? path.outerRadius : path.innerRadius;
+		const float degree = start + i * step;
+
+		const float px = std::cos(ToRadian(degree)) * r;
+		const float py = std::sin(ToRadian(degree)) * r;
+
+		auto type = (i == 0 ? PathPoint::Type::Move : PathPoint::Type::Line);
+		path.path.path.push_back({.base{px, py}, .type = type});
+	}
+	path.path.path.push_back({.type = PathPoint::Type::Close});
+
+	Update(shape, path.path);
+}
+
+static void Update(ShapeComponent& shape, PolygonPathComponent& path)
+{
+	const float start = -90.0f;
+	const float step = 360.0f / path.points;
+
+	path.path.path.clear();
+
+	for (int i = 0; i < path.points; ++i)
+	{
+		const bool isOuter = (i % 2 == 0);
+		const float r = path.outerRadius;
+		const float degree = start + i * step;
+
+		const float px = std::cos(ToRadian(degree)) * r;
+		const float py = std::sin(ToRadian(degree)) * r;
+		auto type = (i == 0 ? PathPoint::Type::Move : PathPoint::Type::Line);
+
+		path.path.path.push_back({.base{px, py}, .type = type});
+	}
+
+	path.path.path.push_back({.type = PathPoint::Type::Close});
+
+	Update(shape, path.path);
+}
+
+static void Update(ShapeComponent& shape, ElipsePathComponent& path)
+{
+	Reset(shape);
+	shape.shape->appendCircle(path.position.x, path.position.y, path.scale.x * 0.5f, path.scale.y * 0.5f);
+}
+
+static void Update(ShapeComponent& shape, RectPathComponent& path)
+{
+	Reset(shape);
+	const float x = path.position.x - path.scale.x * 0.5f;
+	const float y = path.position.y - path.scale.y * 0.5f;
+	shape.shape->appendRect(x, y, path.scale.x, path.scale.y, path.radius, path.radius);
+}
+// shape.shape->reset();
+
+static void Update(ShapeComponent& shape, SolidFillComponent& fill)
+{
+	shape.shape->fill(fill.color.x, fill.color.y, fill.color.z, fill.alpha);
+	shape.shape->fillRule(fill.rule);
+}
+
+static void Update(ShapeComponent& shape, StrokeComponent& stroke)
+{
+	shape.shape->strokeWidth(stroke.width);
+	shape.shape->strokeFill(static_cast<uint32_t>(stroke.color.x), static_cast<uint32_t>(stroke.color.y),
+							static_cast<uint32_t>(stroke.color.z), static_cast<uint32_t>(stroke.alpha));
+}
+
+template <typename TComponent>
+static bool UpdateShape(Entity& entity, ShapeComponent& shape)
+{
+	if (entity.hasComponent<TComponent>())
+	{
+		auto& component = entity.getComponent<TComponent>();
+		Update(shape, component);
+		return true;
+	}
+	return false;
+}
 
 }	 // namespace core
 

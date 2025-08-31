@@ -17,8 +17,6 @@ struct Segment;
 float Evaluate(const Line& line, float x);
 Line ToLine(const Segment& seg);
 
-
-
 static std::array<Vec2, 4> GetObb(tvg::Paint* p)
 {
 	std::array<tvg::Point, 4> pts;
@@ -45,20 +43,20 @@ static bool IsInner(tvg::Paint* p, Vec2 point)
 }
 static Vec2 GetCenter(const std::array<Vec2, 4>& q)
 {
-	return (q[0] + q[1] + q[2] + q[3])/ 4.0f;
+	return (q[0] + q[1] + q[2] + q[3]) / 4.0f;
 }
 
 struct PickInfo
 {
-    std::unordered_set<uint32_t> excludeIds;
-    core::Scene* currentSelectedScene{nullptr};
-    tvg::Paint* currentSelectedPaint{nullptr};
+	std::unordered_set<uint32_t> excludeIds;
+	core::Scene* currentSelectedScene{nullptr};
+	tvg::Paint* currentSelectedPaint{nullptr};
 };
 
 static bool Pick(PickInfo& pickInfo, const Vec2& point, tvg::Paint* paint, int depth)
 {
 	if (!paint || pickInfo.excludeIds.find(paint->id) != pickInfo.excludeIds.end())
-        return false;
+		return false;
 
 	const bool isScene = (paint->type() == tvg::Type::Scene);
 	const bool isCurrentSelected = pickInfo.currentSelectedPaint == paint;
@@ -102,14 +100,14 @@ static bool Pick(T* canvasOrScene, PickInfo& pickInfo, const Vec2& point)
 }
 struct Line
 {
-    float intercept{0};
-    float slope{0};
+	float intercept{0};
+	float slope{0};
 
-    // y = slope * x + intercept
-    const float evalute(float x) const
-    {
-        return Evaluate(*this, x);
-    }
+	// y = slope * x + intercept
+	const float evalute(float x) const
+	{
+		return Evaluate(*this, x);
+	}
 	void moveX(float x)
 	{
 		intercept = Evaluate(*this, -x);
@@ -118,33 +116,34 @@ struct Line
 	{
 		auto radian = ToRadian(d);
 		auto c = cos(radian);
-		if (std::abs(c) < 1e-6f ) 
+		if (std::abs(c) < 1e-6f)
 		{
 			slope = 0;
 		}
-		else 
+		else
 		{
-			slope = sin(radian)/c;
+			slope = sin(radian) / c;
 		}
 	}
 	static Line Gen(const Vec2& point, float degree)
 	{
 		Line line;
 		line.setSlopeByDegree(degree);
-		line.intercept = point.y- line.slope*point.x;
+		line.intercept = point.y - line.slope * point.x;
 		return line;
 	}
 };
 
-struct Segment 
+struct Segment
 {
-    Vec2 start{};
-    Vec2 end{};
+	Vec2 start{};
+	Vec2 end{};
 };
 
 inline static bool Intersect(const Line& source, const Line& target, Vec2& out)
 {
-	if (std::abs(source.slope - target.slope) < 1e-6) return false;
+	if (std::abs(source.slope - target.slope) < 1e-6)
+		return false;
 	out.x = (source.intercept - target.intercept) / (target.slope - source.slope);
 	out.y = source.evalute(out.x);
 	return true;
@@ -165,28 +164,13 @@ inline static bool Intersect(const Segment& source, const Segment& target, Vec2&
 inline static Vec2 Rotate(const Vec2& point, float degree)
 {
 	Vec2 ret;
-	auto c= cos(ToRadian(degree));
-	auto s= sin(ToRadian(degree));
+	auto c = cos(ToRadian(degree));
+	auto s = sin(ToRadian(degree));
 	ret.x = point.x * c - point.y * s;
 	ret.y = point.x * s + point.y * c;
 	return ret;
 }
 
-struct PathPoint
-{
-	enum class Type 
-	{
-		Move,
-		Line,
-		Curve,
-	};
-
-	Vec2 point{};
-	Vec2 leftControlPoint{};
-	Vec2 rightControlPoint{};
-	Type type;
-};
-
-}
+}	 // namespace core
 
 #endif

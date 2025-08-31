@@ -24,6 +24,7 @@ Scene::Scene(bool isMainScene) : mIsMainScene(isMainScene)
 	auto entity = Scene::CreateEntity(this, "Scene");
 	auto& scene = entity.addComponent<SceneComponent>();
 	mId = entity.getComponent<IDComponent>().id;
+
 	mTvgScene = tvg::Scene::gen();
 	mTvgScene->ref();
 	mTvgScene->id = mId;
@@ -144,39 +145,22 @@ Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathComponent>();
 	auto& polygon = entity.addComponent<PolygonPathComponent>();
 
 	entity.addComponent<SolidFillComponent>();
-	transform.anchorPoint = {0.0f, 0.0f};	 // oring of the local, center of the bbox
+
+	const auto radius = wh.h / 2.0f;
+	polygon.points = CommonSetting::Count_DefaultPolygonPathPoint;
+	polygon.outerRadius = radius;
+
+	transform.anchorPoint = {0.0f, 0.0f};
 	transform.localCenterPosition = minXy + wh * 0.5f;
+	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
-	const auto radius = wh.h / 2.0f;
-	const Vec2 ratio = {wh.w * 0.5f / radius, 1.0f};
-	const float start = -90.0f;
-	const float step = 360.0f / polygon.points;
-
-	polygon.points = CommonSetting::Count_DefaultStarPolygonPathPoint;
-	polygon.outerRadius = radius;
-
-	for (int i = 0; i < polygon.points; ++i)
-	{
-		const bool isOuter = (i % 2 == 0);
-		const float r = polygon.outerRadius;
-		const float degree = start + i * step;
-
-		const float px = std::cos(ToRadian(degree)) * r * ratio.x;
-		const float py = std::sin(ToRadian(degree)) * r * ratio.y;
-
-		path.points.emplace_back(px, py);
-		path.pathCommands.push_back(i == 0 ? tvg::PathCommand::MoveTo : tvg::PathCommand::LineTo);
-	}
-
-	path.pathCommands.push_back(tvg::PathCommand::Close);
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -193,82 +177,82 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathComponent>();
 	auto& star = entity.addComponent<StarPolygonPathComponent>();
+
 	entity.addComponent<SolidFillComponent>();
 
-	transform.anchorPoint = {0.0f, 0.0f};	 // oring of the local, center of the bbox
+	const auto radius = wh.h / 2.0f;
+	star.points = CommonSetting::Count_DefaultStarPolygonPathPoint;
+	star.outerRadius = radius;
+	star.innerRadius = radius / 2.0f;
+
+	transform.anchorPoint = {0.0f, 0.0f};
 	transform.localCenterPosition = minXy + wh * 0.5f;
+	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
-	const auto radius = wh.h / 2.0f;
-	const Vec2 ratio = {wh.w * 0.5f / radius, 1.0f};
-	const float start = -90.0f;
-	const float step = 360.0f / (star.points*2.0f);
-	const int iterCount = 2 * star.points;
-
-	star.points = CommonSetting::Count_DefaultStarPolygonPathPoint;
-	star.outerRadius = radius;
-	star.innerRadius = radius/2.0f;
-
-	for (int i = 0; i < iterCount; ++i)
-	{
-		const bool isOuter = (i % 2 == 0);
-		const float r = isOuter ? star.outerRadius : star.innerRadius;
-		const float degree = start + i * step;
-
-		const float px = std::cos(ToRadian(degree)) * r * ratio.x;
-		const float py = std::sin(ToRadian(degree)) * r * ratio.y;
-
-		path.points.emplace_back(px, py);
-		path.pathCommands.push_back(i == 0 ? tvg::PathCommand::MoveTo : tvg::PathCommand::LineTo);
-	}
-
-	path.pathCommands.push_back(tvg::PathCommand::Close);
 	entity.update();
 	mTvgScene->push(shape.shape);
 
 	return entity;
 }
 
-Entity Scene::createObb(const std::array<Vec2, 4>& points)
+Entity Scene::createPathLayer(const PathList& pathList)
 {
-	auto entity = CreateEntity(this, "obb");
+	auto entity = CreateEntity(this, "path");
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathComponent>();
+	auto& path = entity.addComponent<PathListComponent>();
+	entity.addComponent<StrokeComponent>();
+
+	path.path = pathList;
+
+	entity.update();
+	mTvgScene->push(shape.shape);
+
+	return Entity();
+}
+
+Entity Scene::createObb(const std::array<Vec2, 4>& points)
+{
+	auto entity = CreateEntity(this, "obb");
+
+	auto& transform = entity.getComponent<TransformComponent>();
+	auto& id = entity.getComponent<IDComponent>();
+	auto& shape = entity.addComponent<ShapeComponent>();
+	auto& path = entity.addComponent<PathListComponent>();
 	auto& stroke = entity.addComponent<StrokeComponent>();
+
 	auto minx = std::min({points[0].x, points[1].x, points[2].x, points[3].x});
 	auto maxx = std::max({points[0].x, points[1].x, points[2].x, points[3].x});
 	auto miny = std::min({points[0].y, points[1].y, points[2].y, points[3].y});
 	auto maxy = std::max({points[0].y, points[1].y, points[2].y, points[3].y});
+
 	auto width = maxx - minx;
 	auto height = maxy - miny;
+
 	transform.anchorPoint = {0.0f, 0.0f};	 // oring of the local, center of the bbox
 	transform.localCenterPosition = {minx + width * 0.5f, miny + height * 0.5f};
 
-	auto bound = tvg::Shape::gen();
-	path.pathCommands.push_back(tvg::PathCommand::MoveTo);
-	path.pathCommands.push_back(tvg::PathCommand::LineTo);
-	path.pathCommands.push_back(tvg::PathCommand::LineTo);
-	path.pathCommands.push_back(tvg::PathCommand::LineTo);
-	path.pathCommands.push_back(tvg::PathCommand::Close);
-	path.center = tvg::Point{width / 2, height / 2};
 	auto centerp = transform.localCenterPosition;
-	auto p0 = points[0] - centerp;
-	auto p1 = points[1] - centerp;
-	auto p2 = points[2] - centerp;
-	auto p3 = points[3] - centerp;
-	path.points.emplace_back(p0.x, p0.y);
-	path.points.emplace_back(p1.x, p1.y);
-	path.points.emplace_back(p2.x, p2.y);
-	path.points.emplace_back(p3.x, p3.y);
+	path.path.resize(5);
+	path.path[0].type = PathPoint::Type::Move;
+	path.path[1].type = PathPoint::Type::Line;
+	path.path[2].type = PathPoint::Type::Line;
+	path.path[3].type = PathPoint::Type::Line;
+	path.path[4].type = PathPoint::Type::Close;
+	path.center = Vec2{width / 2, height / 2};
 
-	shape.shape = bound;
+	for (int i = 0; i < 4; i++)
+	{
+		path.path[i].base = points[i] - centerp;
+	}
+
+	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
@@ -359,45 +343,42 @@ void Scene::onUpdate()
 		}
 	}
 
-	mRegistry.view<TransformComponent, PathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, PathComponent& path, ShapeComponent& shape)
+	mRegistry.view<TransformComponent, PathListComponent, ShapeComponent>().each(
+		[](auto entity, TransformComponent& transform, PathListComponent& path, ShapeComponent& shape)
 		{
-			transform.update();
-			shape.shape->reset();
-			shape.shape->transform(transform.transform);
-			auto pathPoint = path.points;
-			// todo: path update
-			shape.shape->appendPath(&path.pathCommands[0], path.pathCommands.size(), &pathPoint[0], path.points.size());
+			Update(shape, path);
+			Update(shape, transform);
 		});
 	mRegistry.view<TransformComponent, ElipsePathComponent, ShapeComponent>().each(
 		[](auto entity, TransformComponent& transform, ElipsePathComponent& path, ShapeComponent& shape)
 		{
-			transform.update();
-			shape.shape->reset();
-			shape.shape->transform(transform.transform);
-			shape.shape->appendCircle(path.position.x, path.position.y, path.scale.x * 0.5f, path.scale.y * 0.5f);
+			Update(shape, transform);
+			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, RectPathComponent, ShapeComponent>().each(
 		[](auto entity, TransformComponent& transform, RectPathComponent& path, ShapeComponent& shape)
 		{
-			transform.update();
-			shape.shape->reset();
-			shape.shape->transform(transform.transform);
-			shape.shape->appendRect(path.position.x - path.scale.x / 2.0f, path.position.y - path.scale.y / 2.0f,
-									path.scale.x, path.scale.y, path.radius, path.radius);
+			Update(shape, transform);
+			Update(shape, path);
 		});
+	mRegistry.view<TransformComponent, StarPolygonPathComponent, ShapeComponent>().each(
+		[](auto entity, TransformComponent& transform, StarPolygonPathComponent& path, ShapeComponent& shape)
+		{
+			Update(shape, transform);
+			Update(shape, path);
+		});
+	mRegistry.view<TransformComponent, PolygonPathComponent, ShapeComponent>().each(
+		[](auto entity, TransformComponent& transform, PolygonPathComponent& path, ShapeComponent& shape)
+		{
+			Update(shape, transform);
+			Update(shape, path);
+		});
+
 	mRegistry.view<ShapeComponent, SolidFillComponent>().each(
-		[](auto entity, ShapeComponent& shape, SolidFillComponent& fill)
-		{
-			shape.shape->fill(fill.color.x, fill.color.y, fill.color.z, fill.alpha);
-			shape.shape->fillRule(fill.rule);
-		});
+		[](auto entity, ShapeComponent& shape, SolidFillComponent& fill) { Update(shape, fill); });
 	mRegistry.view<ShapeComponent, StrokeComponent>().each(
-		[](auto entity, ShapeComponent& shape, StrokeComponent& stroke)
-		{
-			shape.shape->strokeWidth(stroke.width);
-			shape.shape->strokeFill(stroke.color.x, stroke.color.y, stroke.color.z, stroke.alpha);
-		});
+		[](auto entity, ShapeComponent& shape, StrokeComponent& stroke) { Update(shape, stroke); });
+
 	mRegistry.view<SceneComponent>().each(
 		[this](auto entity, SceneComponent& scene)
 		{

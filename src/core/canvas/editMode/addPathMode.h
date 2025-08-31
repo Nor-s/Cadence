@@ -3,6 +3,7 @@
 
 #include "editMode.h"
 #include "scene/entity.h"
+#include "scene/component/components.h"
 #include "../shapeUtil.h"
 
 namespace core
@@ -12,21 +13,15 @@ class ControlBox;
 
 class AddPathMode : public EditMode
 {
-	struct PathPointWithControl
-	{
-		PathPoint point;
-		std::unique_ptr<ControlBox> controlBox;
-		PathPointWithControl() = default;
-		PathPointWithControl(const PathPoint& p, std::unique_ptr<ControlBox> control);
-	};
 	struct Context
 	{
-        Vec2 startPos;
-        Vec2 beforePos;
-        Vec2 currentPos;
-		std::list<PathPointWithControl> pathList;
-        PathPointWithControl* clicked{nullptr};
-        PathPoint::Type currentEditType{PathPoint::Type::Line};
+		Vec2 startPos;
+		Vec2 beforePos;
+		Vec2 currentPos;
+		PathList pathList;
+		std::list<std::unique_ptr<ControlBox>> controlList;
+		ControlBox* clickedControl{nullptr};
+		PathPoint::Type currentEditType{PathPoint::Type::Line};
 	};
 
 public:

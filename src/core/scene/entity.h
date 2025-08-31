@@ -5,13 +5,18 @@
 #include <vector>
 #include <memory>
 
-
 #include <entt/entt.hpp>
-
 
 namespace core
 {
 using EntityID = uint32_t;
+
+struct ShapeComponent;
+struct ElipsePathComponent;
+struct RectPathComponent;
+struct PathListComponent;
+struct SolidFillComponent;
+struct StrokeComponent;
 
 class Scene;
 class Entity
@@ -25,9 +30,15 @@ public:
 	void moveByDelta(const Vec2& delta);
 	void hide();
 	void show();
-	bool isHidden() const { return mIsHide; }
+	bool isHidden() const
+	{
+		return mIsHide;
+	}
 
 	void update();
+	void updateTransform();
+	void updateShapePath();
+	void updateShapeAtt();
 
 	template <class T>
 	T& getComponent();
@@ -45,6 +56,7 @@ public:
 	const bool isNull() const;
 
 	entt::entity mHandle{entt::null};
+
 private:
 	core::Scene* rScene{nullptr};
 	bool mIsHide{false};

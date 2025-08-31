@@ -9,12 +9,12 @@
 #include <unordered_map>
 #include <array>
 
-
 namespace core
 {
 
 class CanvasWrapper;
 class Entity;
+class Path;
 
 class Scene
 {
@@ -41,19 +41,18 @@ public:
 	Entity createRectFillStrokeLayer(Vec2 minXy, Vec2 wh);
 	Entity createPolygonFillLayer(Vec2 minXy, Vec2 wh);
 	Entity createStarFillLayer(Vec2 minXy, Vec2 wh);
+	Entity createPathLayer(const PathList& pathList);
 	Entity createObb(const std::array<Vec2, 4>& points);
 
-	template<typename T>
+	template <typename T>
 	std::vector<Entity> findByComponent()
 	{
-	    std::vector<Entity> ret;
+		std::vector<Entity> ret;
 
-	    mRegistry.view<T>().each([&](entt::entity entity, T& comp)
-	    {
-	        ret.emplace_back(this, static_cast<uint32_t>(entity));
-	    });
+		mRegistry.view<T>().each([&](entt::entity entity, T& comp)
+								 { ret.emplace_back(this, static_cast<uint32_t>(entity)); });
 
- 	   return ret;
+		return ret;
 	}
 
 	Entity getEntityById(uint32_t id);
@@ -62,7 +61,7 @@ public:
 	void destroyEntity(core::Entity& entity);
 	void pushCanvas(CanvasWrapper* canvas);
 
-	tvg::Scene* getScene() 
+	tvg::Scene* getScene()
 	{
 		return mTvgScene;
 	}
@@ -78,7 +77,6 @@ protected:
 	entt::registry mRegistry{};
 	std::vector<CanvasWrapper*> rCanvasList;
 	tvg::Scene* mTvgScene;
-
 };
 
 }	 // namespace core
