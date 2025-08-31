@@ -79,21 +79,42 @@ void BBox::retarget(Entity target)
 
 		return true;
 	};
+	struct ScaleFunc
+	{
+		static Vec2 GetRatio(const Vec2 start, const Vec2 current, tvg::Matrix toLocal)
+		{
+			const auto localStart = start * toLocal;
+
+			if (std::abs(localStart.x) < 1e-6 || std::abs(localStart.y) < 1e-6)
+				return {1.0f, 1.0f};
+			const auto localCurrent = current * toLocal;
+			return (localCurrent / localStart);
+		}
+	};
 	auto scaleLambda = [this]()
 	{
-		const auto start = mStartPoint;
-		const auto current = mCurrentPoint;
-
-		const auto inverse = mBeforeTransform.inverse();
-		const auto localStart = start * inverse;
-		const auto localCurrent = current * inverse;
-		const auto ratio = (localCurrent / localStart);
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
-
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
-
 		return true;
 	};
+	auto scaleXLambda = [this]()
+	{
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
+		ratio.y = 1.0f;
+		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
+		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
+		return true;
+	};
+	auto scaleYLambda = [this]()
+	{
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
+		ratio.x = 1.0f;
+		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
+		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
+		return true;
+	};
+
 	auto rotationLambda = [this]()
 	{
 		const auto pivot = mBeforeTransform.worldPosition;
@@ -125,8 +146,8 @@ void BBox::retarget(Entity target)
 	const auto centerPoint = targetTransform.worldPosition;
 	auto wh = Vec2{CommonSetting::Width_DefaultBBoxControlBox, CommonSetting::Width_DefaultBBoxControlBox};
 
-	mControlBox[AnchorPoint] =
-		std::make_unique<ControlBox>(rScene, centerPoint, wh, ControlBox::Type::Move, ControlBox::ShapeType::StrokeEllipse);
+	mControlBox[AnchorPoint] = std::make_unique<ControlBox>(rScene, centerPoint, wh, ControlBox::Type::Move,
+															ControlBox::ShapeType::StrokeEllipse);
 
 	mControlBox[BoxArea] = std::make_unique<ControlBox>(rScene, points, ControlBox::Type::Move);
 	mControlBox[BoxArea]->setOnLeftDrag(MakeLambda(moveBox));
@@ -136,23 +157,40 @@ void BBox::retarget(Entity target)
 	mControlBox[TopLeftScale]->setOnLeftDrag(MakeLambda(scaleLambda));
 	mControlBox[TopRightScale] = std::make_unique<ControlBox>(rScene, points[1], wh, ControlBox::Type::Scale);
 	mControlBox[TopRightScale]->setOnLeftDrag(MakeLambda(scaleLambda));
+
 	mControlBox[BottomLeftScale] = std::make_unique<ControlBox>(rScene, points[2], wh, ControlBox::Type::Scale);
 	mControlBox[BottomLeftScale]->setOnLeftDrag(MakeLambda(scaleLambda));
 	mControlBox[BottomRightScale] = std::make_unique<ControlBox>(rScene, points[3], wh, ControlBox::Type::Scale);
 	mControlBox[BottomRightScale]->setOnLeftDrag(MakeLambda(scaleLambda));
 
+	mControlBox[TopCenterScale] =
+		std::make_unique<ControlBox>(rScene, (points[2] + points[3]) * 0.5f, wh, ControlBox::Type::Scale);
+	mControlBox[TopCenterScale]->setOnLeftDrag(MakeLambda(scaleYLambda));
+
+	mControlBox[LeftCenterScale] =
+		std::make_unique<ControlBox>(rScene, (points[1] + points[2]) * 0.5f, wh, ControlBox::Type::Scale);
+	mControlBox[LeftCenterScale]->setOnLeftDrag(MakeLambda(scaleXLambda));
+
+	mControlBox[RightCenterScale] =
+		std::make_unique<ControlBox>(rScene, (points[3] + points[0]) * 0.5f, wh, ControlBox::Type::Scale);
+	mControlBox[RightCenterScale]->setOnLeftDrag(MakeLambda(scaleXLambda));
+
+	mControlBox[BottomCenterScale] =
+		std::make_unique<ControlBox>(rScene, (points[1] + points[0]) * 0.5f, wh, ControlBox::Type::Scale);
+	mControlBox[BottomCenterScale]->setOnLeftDrag(MakeLambda(scaleYLambda));
+
 	wh = Vec2{CommonSetting::Width_DefaultBBoxRotationControlBox, CommonSetting::Width_DefaultBBoxRotationControlBox};
-	mControlBox[TopLeftRotate] =
-		std::make_unique<ControlBox>(rScene, points[0], wh, ControlBox::Type::Rotate, ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[TopLeftRotate] = std::make_unique<ControlBox>(rScene, points[0], wh, ControlBox::Type::Rotate,
+															  ControlBox::ShapeType::TransparentEllipse);
 	mControlBox[TopLeftRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[TopRightRotate] =
-		std::make_unique<ControlBox>(rScene, points[1], wh, ControlBox::Type::Rotate, ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[TopRightRotate] = std::make_unique<ControlBox>(rScene, points[1], wh, ControlBox::Type::Rotate,
+															   ControlBox::ShapeType::TransparentEllipse);
 	mControlBox[TopRightRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[BottomLeftRotate] =
-		std::make_unique<ControlBox>(rScene, points[2], wh, ControlBox::Type::Rotate, ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[BottomLeftRotate] = std::make_unique<ControlBox>(rScene, points[2], wh, ControlBox::Type::Rotate,
+																 ControlBox::ShapeType::TransparentEllipse);
 	mControlBox[BottomLeftRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[BottomRightRotate] =
-		std::make_unique<ControlBox>(rScene, points[3], wh, ControlBox::Type::Rotate, ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[BottomRightRotate] = std::make_unique<ControlBox>(rScene, points[3], wh, ControlBox::Type::Rotate,
+																  ControlBox::ShapeType::TransparentEllipse);
 	mControlBox[BottomRightRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
 }
 
@@ -214,9 +252,10 @@ bool BBox::onEndLeftMouse(const InputValue& inputValue)
 
 bool BBox::onMoveMouse(const InputValue& inputValue)
 {
-	if (mIsDrag) return true;
+	if (mIsDrag)
+		return true;
 
-	if(rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
+	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
 		return false;
 
 	auto& shape = rTarget.getComponent<ShapeComponent>();

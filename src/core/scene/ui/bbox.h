@@ -19,20 +19,23 @@ class BBox
 {
 	enum ControlType
 	{
-		BoxArea = 0,
-		AnchorPoint,
-		TopLeftScale,
+		TopLeftScale = 0,
 		TopRightScale,
 		BottomLeftScale,
 		BottomRightScale,
-		// TopCenterScale,
-		// BottomCenterScale,
-		// LeftCenterScale,
-		// RightCenterScale,
+		TopCenterScale,
+		BottomCenterScale,
+		LeftCenterScale,
+		RightCenterScale,
+
+		BoxArea,
+		AnchorPoint,
+
 		TopLeftRotate,
 		TopRightRotate,
 		BottomLeftRotate,
 		BottomRightRotate,
+
 		ControlTypeCount
 	};
 
