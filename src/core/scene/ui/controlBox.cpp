@@ -9,98 +9,135 @@
 namespace core
 {
 
-ControlBox::ControlBox(Scene* scene, Vec2 center, Vec2 wh, Type type, ShapeType shapeType)
+ControlOverlay::ControlOverlay(Scene* scene, Vec2 center, Vec2 wh, Type type, ShapeType shapeType)
 {
+	mType = type;
 	rScene = scene;
-    switch(shapeType)
-    {
-        case ShapeType::FillStrokeEllipse:
-        case ShapeType::TransparentEllipse:
-        case ShapeType::StrokeEllipse:
-        {
-            mEntity = rScene->createEllipseFillStrokeLayer(center - wh/2.0f, wh);
-            break;
-        }
-        case ShapeType::FillStrokeRect:
-        case ShapeType::StrokeRect:
-        {
-            mEntity = rScene->createRectFillStrokeLayer(center - wh/2.0f, wh);
-            break;
-        }
-    }
-    auto& stroke = mEntity.getComponent<StrokeComponent>();
-    auto& fill = mEntity.getComponent<SolidFillComponent>();
-    stroke.color = CommonSetting::Color_DefaultControlBoxOutline;
-    fill.color = CommonSetting::Color_DefaultControlBoxInner;
+	switch (shapeType)
+	{
+		case ShapeType::ActiveFillStrokeEllipse:
+		case ShapeType::FillStrokeEllipse:
+		case ShapeType::TransparentEllipse:
+		case ShapeType::StrokeEllipse:
+		{
+			mEntity = rScene->createEllipseFillStrokeLayer(center - wh / 2.0f, wh);
+			break;
+		}
+		case ShapeType::FillStrokeRect:
+		case ShapeType::StrokeRect:
+		{
+			mEntity = rScene->createRectFillStrokeLayer(center - wh / 2.0f, wh);
+			break;
+		}
+	}
+	auto& stroke = mEntity.getComponent<StrokeComponent>();
+	auto& fill = mEntity.getComponent<SolidFillComponent>();
+	stroke.color = CommonSetting::Color_DefaultControlBoxOutline;
+	fill.color = CommonSetting::Color_DefaultControlBoxInner;
 
-    switch(shapeType)
-    {
-        case ShapeType::StrokeEllipse:
-        case ShapeType::StrokeRect:
-        case ShapeType::TransparentEllipse:
-        {
-            fill.alpha = 0.0f;
-        }
-    }
-    switch(shapeType)
-    {
-        case ShapeType::TransparentEllipse:
-        {
-            stroke.alpha = 0.0f;
-        }
-    }
+	switch (shapeType)
+	{
+		case ShapeType::StrokeEllipse:
+		case ShapeType::StrokeRect:
+		case ShapeType::TransparentEllipse:
+		{
+			fill.alpha = 0.0f;
+			break;
+		}
+		case ShapeType::ActiveFillStrokeEllipse:
+		{
+			fill.color = CommonSetting::Color_DefaultActiveFillStrokeEllipse;
+			break;
+		}
+	}
+	switch (shapeType)
+	{
+		case ShapeType::TransparentEllipse:
+		{
+			stroke.alpha = 0.0f;
+			break;
+		}
+	}
 
-    auto& shape = mEntity.getComponent<ShapeComponent>();
-    mObbPoints = GetObb(shape.shape);
+	auto& shape = mEntity.getComponent<ShapeComponent>();
+	mObbPoints = GetObb(shape.shape);
 }
 
-ControlBox::ControlBox(Scene* scene, const std::array<Vec2, 4>& obbPoints, Type type)
+ControlOverlay::ControlOverlay(Scene* scene, PathPoint start, PathPoint end)
 {
+	mType = Type::None;
 	rScene = scene;
-    mObbPoints = obbPoints;
-    mEntity = rScene->createObb(obbPoints);
+	if (start.type == PathPoint::Command::MoveTo)
+	{
+		mEntity = rScene->createPathLayer({start, end});
+	}
+	else
+	{
+		auto intermediate = start;
+		start.type = PathPoint::Command::MoveTo;
+		mEntity = rScene->createPathLayer({start, intermediate, end});
+	}
 
-    auto& stroke = mEntity.getComponent<StrokeComponent>();
-    stroke.color = CommonSetting::Color_DefaultControlBoxOutline;
+	auto& stroke = mEntity.getComponent<StrokeComponent>();
+	stroke.color = CommonSetting::Color_DefaultControlBoxOutline;
 }
 
-ControlBox::~ControlBox()
+ControlOverlay::ControlOverlay(Scene* scene, Vec2 center, float w, Type type, ShapeType shape)
+	: ControlOverlay(scene, center, Vec2(w, w), type, shape)
+{
+}
+
+ControlOverlay::ControlOverlay(Scene* scene, const std::array<Vec2, 4>& obbPoints, Type type)
+{
+	mType = type;
+	rScene = scene;
+	mObbPoints = obbPoints;
+	mEntity = rScene->createObb(obbPoints);
+
+	auto& stroke = mEntity.getComponent<StrokeComponent>();
+	stroke.color = CommonSetting::Color_DefaultControlBoxOutline;
+}
+
+ControlOverlay::~ControlOverlay()
 {
 	rScene->destroyEntity(mEntity);
 }
 
-void ControlBox::moveTo(const Vec2& xy)
+void ControlOverlay::moveTo(const Vec2& xy)
 {
-    auto& transform = mEntity.getComponent<TransformComponent>();
-    transform.localCenterPosition = xy;
-    mEntity.update();
+	auto& transform = mEntity.getComponent<TransformComponent>();
+	transform.localCenterPosition = xy;
+	mEntity.update();
 
-    auto& shape = mEntity.getComponent<ShapeComponent>();
-    mObbPoints = GetObb(shape.shape);
+	auto& shape = mEntity.getComponent<ShapeComponent>();
+	mObbPoints = GetObb(shape.shape);
 }
-void ControlBox::moveByDelta(const Vec2& delta)
+void ControlOverlay::moveByDelta(const Vec2& delta)
 {
-    mEntity.moveByDelta(delta);
-    mEntity.update();
+	mEntity.moveByDelta(delta);
+	mEntity.update();
 
-    auto& shape = mEntity.getComponent<ShapeComponent>();
-    mObbPoints = GetObb(shape.shape);
+	auto& shape = mEntity.getComponent<ShapeComponent>();
+	mObbPoints = GetObb(shape.shape);
 }
-bool ControlBox::onLeftDown(Vec2 xy)
+bool ControlOverlay::onLeftDown(Vec2 xy)
 {
-    if(IsInner(mObbPoints, xy))
-    {
-        return true;
-    }
-    return false;
+	if (mType == Type::None)
+		return false;
+
+	if (IsInner(mObbPoints, xy))
+	{
+		return true;
+	}
+	return false;
 }
 
-void ControlBox::setVisible(bool visible)
+void ControlOverlay::setVisible(bool visible)
 {
 	visible ? mEntity.show() : mEntity.hide();
 }
 
-bool ControlBox::isVisible() const
+bool ControlOverlay::isVisible() const
 {
 	return !mEntity.isHidden();
 }

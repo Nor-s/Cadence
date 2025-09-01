@@ -146,51 +146,52 @@ void BBox::retarget(Entity target)
 	const auto centerPoint = targetTransform.worldPosition;
 	auto wh = Vec2{CommonSetting::Width_DefaultBBoxControlBox, CommonSetting::Width_DefaultBBoxControlBox};
 
-	mControlBox[AnchorPoint] = std::make_unique<ControlBox>(rScene, centerPoint, wh, ControlBox::Type::Move,
-															ControlBox::ShapeType::StrokeEllipse);
+	mControlBox[AnchorPoint] = std::make_unique<ControlOverlay>(rScene, centerPoint, wh, ControlOverlay::Type::Move,
+																ControlOverlay::ShapeType::StrokeEllipse);
 
-	mControlBox[BoxArea] = std::make_unique<ControlBox>(rScene, points, ControlBox::Type::Move);
+	mControlBox[BoxArea] = std::make_unique<ControlOverlay>(rScene, points, ControlOverlay::Type::Move);
 	mControlBox[BoxArea]->setOnLeftDrag(MakeLambda(moveBox));
 
 	mControlBox[AnchorPoint]->setOnLeftDrag(MakeLambda(moveAnchorPoint));
-	mControlBox[TopLeftScale] = std::make_unique<ControlBox>(rScene, points[0], wh, ControlBox::Type::Scale);
+	mControlBox[TopLeftScale] = std::make_unique<ControlOverlay>(rScene, points[0], wh, ControlOverlay::Type::Scale);
 	mControlBox[TopLeftScale]->setOnLeftDrag(MakeLambda(scaleLambda));
-	mControlBox[TopRightScale] = std::make_unique<ControlBox>(rScene, points[1], wh, ControlBox::Type::Scale);
+	mControlBox[TopRightScale] = std::make_unique<ControlOverlay>(rScene, points[1], wh, ControlOverlay::Type::Scale);
 	mControlBox[TopRightScale]->setOnLeftDrag(MakeLambda(scaleLambda));
 
-	mControlBox[BottomLeftScale] = std::make_unique<ControlBox>(rScene, points[2], wh, ControlBox::Type::Scale);
+	mControlBox[BottomLeftScale] = std::make_unique<ControlOverlay>(rScene, points[2], wh, ControlOverlay::Type::Scale);
 	mControlBox[BottomLeftScale]->setOnLeftDrag(MakeLambda(scaleLambda));
-	mControlBox[BottomRightScale] = std::make_unique<ControlBox>(rScene, points[3], wh, ControlBox::Type::Scale);
+	mControlBox[BottomRightScale] =
+		std::make_unique<ControlOverlay>(rScene, points[3], wh, ControlOverlay::Type::Scale);
 	mControlBox[BottomRightScale]->setOnLeftDrag(MakeLambda(scaleLambda));
 
 	mControlBox[TopCenterScale] =
-		std::make_unique<ControlBox>(rScene, (points[2] + points[3]) * 0.5f, wh, ControlBox::Type::Scale);
+		std::make_unique<ControlOverlay>(rScene, (points[2] + points[3]) * 0.5f, wh, ControlOverlay::Type::Scale);
 	mControlBox[TopCenterScale]->setOnLeftDrag(MakeLambda(scaleYLambda));
 
 	mControlBox[LeftCenterScale] =
-		std::make_unique<ControlBox>(rScene, (points[1] + points[2]) * 0.5f, wh, ControlBox::Type::Scale);
+		std::make_unique<ControlOverlay>(rScene, (points[1] + points[2]) * 0.5f, wh, ControlOverlay::Type::Scale);
 	mControlBox[LeftCenterScale]->setOnLeftDrag(MakeLambda(scaleXLambda));
 
 	mControlBox[RightCenterScale] =
-		std::make_unique<ControlBox>(rScene, (points[3] + points[0]) * 0.5f, wh, ControlBox::Type::Scale);
+		std::make_unique<ControlOverlay>(rScene, (points[3] + points[0]) * 0.5f, wh, ControlOverlay::Type::Scale);
 	mControlBox[RightCenterScale]->setOnLeftDrag(MakeLambda(scaleXLambda));
 
 	mControlBox[BottomCenterScale] =
-		std::make_unique<ControlBox>(rScene, (points[1] + points[0]) * 0.5f, wh, ControlBox::Type::Scale);
+		std::make_unique<ControlOverlay>(rScene, (points[1] + points[0]) * 0.5f, wh, ControlOverlay::Type::Scale);
 	mControlBox[BottomCenterScale]->setOnLeftDrag(MakeLambda(scaleYLambda));
 
 	wh = Vec2{CommonSetting::Width_DefaultBBoxRotationControlBox, CommonSetting::Width_DefaultBBoxRotationControlBox};
-	mControlBox[TopLeftRotate] = std::make_unique<ControlBox>(rScene, points[0], wh, ControlBox::Type::Rotate,
-															  ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[TopLeftRotate] = std::make_unique<ControlOverlay>(rScene, points[0], wh, ControlOverlay::Type::Rotate,
+																  ControlOverlay::ShapeType::TransparentEllipse);
 	mControlBox[TopLeftRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[TopRightRotate] = std::make_unique<ControlBox>(rScene, points[1], wh, ControlBox::Type::Rotate,
-															   ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[TopRightRotate] = std::make_unique<ControlOverlay>(rScene, points[1], wh, ControlOverlay::Type::Rotate,
+																   ControlOverlay::ShapeType::TransparentEllipse);
 	mControlBox[TopRightRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[BottomLeftRotate] = std::make_unique<ControlBox>(rScene, points[2], wh, ControlBox::Type::Rotate,
-																 ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[BottomLeftRotate] = std::make_unique<ControlOverlay>(
+		rScene, points[2], wh, ControlOverlay::Type::Rotate, ControlOverlay::ShapeType::TransparentEllipse);
 	mControlBox[BottomLeftRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
-	mControlBox[BottomRightRotate] = std::make_unique<ControlBox>(rScene, points[3], wh, ControlBox::Type::Rotate,
-																  ControlBox::ShapeType::TransparentEllipse);
+	mControlBox[BottomRightRotate] = std::make_unique<ControlOverlay>(
+		rScene, points[3], wh, ControlOverlay::Type::Rotate, ControlOverlay::ShapeType::TransparentEllipse);
 	mControlBox[BottomRightRotate]->setOnLeftDrag(MakeLambda(rotationLambda));
 }
 

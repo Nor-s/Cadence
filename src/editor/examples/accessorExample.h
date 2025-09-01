@@ -22,7 +22,7 @@ struct AccessorExample : tvgexam::Example
 		auto result = picture->load(EXAMPLE_DIR "/svg/favorite_on.svg");
 		if (!tvgexam::verify(result))
 			return false;
-		picture->size(w, h);
+		picture->size(static_cast<float>(w), static_cast<float>(h));
 
 		auto accessor = unique_ptr<tvg::Accessor>(tvg::Accessor::gen());
 

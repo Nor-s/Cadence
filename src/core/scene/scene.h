@@ -14,7 +14,6 @@ namespace core
 
 class CanvasWrapper;
 class Entity;
-class Path;
 
 class Scene
 {
@@ -41,7 +40,9 @@ public:
 	Entity createRectFillStrokeLayer(Vec2 minXy, Vec2 wh);
 	Entity createPolygonFillLayer(Vec2 minXy, Vec2 wh);
 	Entity createStarFillLayer(Vec2 minXy, Vec2 wh);
-	Entity createPathLayer(const PathList& pathList);
+
+	// a deep-copied PathLayer using the first point of the pathList as the origin.
+	Entity createPathLayer(PathPoints pathList);
 	Entity createObb(const std::array<Vec2, 4>& points);
 
 	template <typename T>

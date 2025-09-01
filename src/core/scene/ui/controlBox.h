@@ -36,7 +36,7 @@ auto MakeLambda(F&& f)
 	return std::make_unique<LambdaWrapper<FnType>>(std::forward<F>(f));
 }
 
-class ControlBox
+class ControlOverlay
 {
 public:
 	// for cursor shape
@@ -44,7 +44,8 @@ public:
 	{
 		Move,
 		Rotate,
-		Scale
+		Scale,
+		None
 	};
 
 	enum class ShapeType
@@ -52,14 +53,18 @@ public:
 		FillStrokeRect,
 		StrokeRect,
 		TransparentEllipse,
+		ActiveFillStrokeEllipse,
 		FillStrokeEllipse,
 		StrokeEllipse,
+		StrokePath,
 	};
 
 public:
-	ControlBox(Scene* scene, Vec2 center, Vec2 wh, Type type, ShapeType shape = ShapeType::FillStrokeRect);
-	ControlBox(Scene* scene, const std::array<Vec2, 4>& obbPoints, Type type = Type::Move);
-	~ControlBox();
+	ControlOverlay(Scene* scene, Vec2 center, float w, Type type, ShapeType shape = ShapeType::FillStrokeRect);
+	ControlOverlay(Scene* scene, Vec2 center, Vec2 wh, Type type, ShapeType shape = ShapeType::FillStrokeRect);
+	ControlOverlay(Scene* scene, PathPoint start, PathPoint end);
+	ControlOverlay(Scene* scene, const std::array<Vec2, 4>& obbPoints, Type type = Type::Move);
+	~ControlOverlay();
 
 	void moveTo(const Vec2& xy);
 	void moveByDelta(const Vec2& xy);
@@ -87,6 +92,7 @@ private:
 	Entity mEntity;
 	std::unique_ptr<IFunction> mOnLeftDrag;
 	std::array<Vec2, 4> mObbPoints;
+	Type mType;
 };
 
 }	 // namespace core

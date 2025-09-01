@@ -342,6 +342,28 @@ inline static Vec2 lerp(const Vec2& a, const Vec2& b, float t)
 	return {lerp(a.x, b.x, t), lerp(a.y, b.y, t)};
 }
 
+inline static Vec2 Bezier(const Vec2& start, const Vec2& ctrl1, const Vec2& ctrl2, const Vec2& end)
+{
+	// Vec2 cur;
+	//  auto it = 1.0f - t;
+
+	// auto ax = start.x * it + ctrl1.x * t;
+	// auto bx = ctrl1.x * it + ctrl2.x * t;
+	// auto cx = ctrl2.x * it + end.x * t;
+	// ax = ax * it + bx * t;
+	// bx = bx * it + cx * t;
+	// cur.x = ax * it + bx * t;
+
+	// float ay = start.y * it + ctrl1.y * t;
+	// float by = ctrl1.y * it + ctrl2.y * t;
+	// float cy = ctrl2.y * it + end.y * t;
+	// ay = ay * it + by * t;
+	// by = by * it + cy * t;
+	// cur.y = ay * it + by * t;
+
+	return Vec2{};
+}
+
 }	 // namespace core
 
 #endif

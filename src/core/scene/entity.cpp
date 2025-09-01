@@ -59,10 +59,10 @@ void Entity::updateShapePath()
 
 	Reset(shape);
 
-	bool isShapeUpdate =
-		UpdateShape<PathListComponent>(*this, shape) || UpdateShape<ElipsePathComponent>(*this, shape) ||
-		UpdateShape<RectPathComponent>(*this, shape) || UpdateShape<PolygonPathComponent>(*this, shape) ||
-		UpdateShape<StarPolygonPathComponent>(*this, shape);
+	bool isShapeUpdate = UpdateShape<PathComponent>(*this, shape) || UpdateShape<ElipsePathComponent>(*this, shape) ||
+						 UpdateShape<RectPathComponent>(*this, shape) ||
+						 UpdateShape<PolygonPathComponent>(*this, shape) ||
+						 UpdateShape<StarPolygonPathComponent>(*this, shape);
 	assert(isShapeUpdate);
 }
 

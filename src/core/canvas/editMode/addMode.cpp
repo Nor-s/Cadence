@@ -32,21 +32,21 @@ bool AddMode::onDragLeftMouse(const InputValue& inputValue)
 	auto end = Vec2{std::max(startPoint.x, endPoint.x), std::max(startPoint.y, endPoint.y)};
 
 	if (mContext.newEntity.mHandle != entt::null)
-		rCanvas->mOverlayScene->destroyEntity(mContext.newEntity);
+		rCanvas->mControlScene->destroyEntity(mContext.newEntity);
 
 	switch (mType)
 	{
 		case EditModeType::ADD_SQUARE:
-			mContext.newEntity = rCanvas->mOverlayScene->createRectFillLayer(start, end - start);
+			mContext.newEntity = rCanvas->mControlScene->createRectFillLayer(start, end - start);
 			break;
 		case EditModeType::ADD_ELLIPSE:
-			mContext.newEntity = rCanvas->mOverlayScene->createEllipseFillLayer(start, end - start);
+			mContext.newEntity = rCanvas->mControlScene->createEllipseFillLayer(start, end - start);
 			break;
 		case EditModeType::ADD_POLYGON:
-			mContext.newEntity = rCanvas->mOverlayScene->createPolygonFillLayer(start, end - start);
+			mContext.newEntity = rCanvas->mControlScene->createPolygonFillLayer(start, end - start);
 			break;
 		default:
-			mContext.newEntity = rCanvas->mOverlayScene->createStarFillLayer(start, end - start);
+			mContext.newEntity = rCanvas->mControlScene->createStarFillLayer(start, end - start);
 			break;
 	};
 
@@ -61,7 +61,7 @@ bool AddMode::onEndLeftMouse(const InputValue& inputValue)
 
 	if (mContext.newEntity.mHandle != entt::null)
 	{
-		rCanvas->mOverlayScene->destroyEntity(mContext.newEntity);
+		rCanvas->mControlScene->destroyEntity(mContext.newEntity);
 	}
 	auto wh = end - start;
 	float threshold = 20.0f;

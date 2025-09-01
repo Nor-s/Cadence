@@ -157,7 +157,7 @@ void ImGuiCanvasView::drawAnimationCanvasProperties()
 	auto* animCanvas = static_cast<core::AnimationCreatorCanvas*>(canvas);
 	if (animCanvas)
 	{
-		auto select = animCanvas->mOverlayScene->findByComponent<core::BBoxControlComponent>();
+		auto select = animCanvas->mControlScene->findByComponent<core::BBoxControlComponent>();
 		if (!select.empty())
 		{
 			auto& bbox = select.front().getComponent<core::BBoxControlComponent>().bbox;
@@ -181,7 +181,8 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 		{
 			auto& transform = entity.getComponent<core::TransformComponent>();
 			auto position = transform.localCenterPosition;
-			ImGui::Helper::DragFPropertyXYZ("position:", position.value, 0.001f, -1000.0f, 1000.0f, "%.3f", "position", 2);
+			ImGui::Helper::DragFPropertyXYZ("position:", position.value, 0.001f, -1000.0f, 1000.0f, "%.3f", "position",
+											2);
 
 			auto scale = transform.scale;
 			ImGui::Helper::DragFPropertyXYZ("scale:", scale.value, 0.001f, -1000.0f, 1000.0f, "%.3f", "scale", 2);
@@ -250,7 +251,8 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 			isStrokeWidthEdit = ImGui::DragFloat("## stroke width", &width, 0.1f, 0.0f, 50.0f);
 			if (isStrokeWidthEdit || IsBeforeStrokeWidthEdit)
 			{
-				UpdateEntityStrokeWidthCurrentFrame(entity.getId(), width, IsBeforeStrokeWidthEdit && !isStrokeWidthEdit);
+				UpdateEntityStrokeWidthCurrentFrame(entity.getId(), width,
+													IsBeforeStrokeWidthEdit && !isStrokeWidthEdit);
 			}
 
 			static bool isSColorEdit = false;
@@ -263,7 +265,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 			{
 				color = color * 255.0f;
 				UpdateEntityStrokeColorCurrentFrame(entity.getId(), color.r, color.g, color.b,
-													   isBeforeColorEdit && !isSColorEdit);
+													isBeforeColorEdit && !isSColorEdit);
 			}
 
 			static bool isSAlphaEdit = false;
@@ -279,7 +281,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 			}
 		}
 		ImGui::Separator();
-	} // stroke component
+	}	 // stroke component
 }
 
 }	 // namespace editor

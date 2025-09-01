@@ -10,7 +10,6 @@
 
 #include <memory>
 
-
 namespace core
 {
 
@@ -19,6 +18,7 @@ AnimationCreatorCanvas::AnimationCreatorCanvas(void* context, Size size, bool bI
 {
 	mScene = std::make_unique<core::Scene>(true);
 	mOverlayScene = std::make_unique<core::Scene>(false);
+	mControlScene = std::make_unique<core::Scene>(false);
 	mAnimator = std::make_unique<core::Animator>(this);
 
 	mScene->pushCanvas(this);
@@ -26,6 +26,9 @@ AnimationCreatorCanvas::AnimationCreatorCanvas(void* context, Size size, bool bI
 
 	mOverlayScene->pushCanvas(this);
 	mCanvas->push(mOverlayScene->mTvgScene);
+
+	mControlScene->pushCanvas(this);
+	mCanvas->push(mControlScene->mTvgScene);
 
 	mInputController = std::make_unique<AnimationCreatorInputController>(this);
 }
@@ -40,10 +43,11 @@ InputController* AnimationCreatorCanvas::getInputController()
 void AnimationCreatorCanvas::onUpdate()
 {
 	CanvasWrapper::onUpdate();
-	
+
 	mAnimator->update();
 	mScene->onUpdate();
-	mInputController->onUpdate();
 	mOverlayScene->onUpdate();
+	mInputController->onUpdate();
+	mControlScene->onUpdate();
 }
 }	 // namespace core

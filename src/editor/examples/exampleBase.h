@@ -216,8 +216,8 @@ public:
 		mCanvas->remove();
 		mPaints.clear();
 		mAnimations.clear();
-		mExample->content(mCanvas, mSize.x, mSize.y);
-		mExample->elapsed = 0.0f;
+		mExample->content(mCanvas, static_cast<uint32_t>(mSize.x), static_cast<uint32_t>(mSize.y));
+		mExample->elapsed = 0u;
 	}
 
 	void onUpdate() override
@@ -237,7 +237,7 @@ public:
 	void onResize() override
 	{
 		mCanvas->remove();
-		mExample->content(mCanvas, mSize.x, mSize.y);
+		mExample->content(mCanvas, static_cast<uint32_t>(mSize.x), static_cast<uint32_t>(mSize.y));
 		for (auto& paint : mPaints)
 		{
 			paint->scale(mSize);

@@ -9,7 +9,7 @@
 namespace core
 {
 class Scene;
-class ControlBox;
+class ControlOverlay;
 
 class AddPathMode : public EditMode
 {
@@ -18,10 +18,23 @@ class AddPathMode : public EditMode
 		Vec2 startPos;
 		Vec2 beforePos;
 		Vec2 currentPos;
-		PathList pathList;
-		std::list<std::unique_ptr<ControlBox>> controlList;
-		ControlBox* clickedControl{nullptr};
-		PathPoint::Type currentEditType{PathPoint::Type::Line};
+		PathPoints path;
+		std::vector<std::unique_ptr<ControlOverlay>> controlList;
+		int clickedIndex{-1};
+		PathPoint::Command currentEditType{PathPoint::Command::LineTo};
+		Entity line;
+
+		std::unique_ptr<ControlOverlay> preview;
+		std::unique_ptr<ControlOverlay> controlLine;
+		std::unique_ptr<ControlOverlay> leftControl;
+		std::unique_ptr<ControlOverlay> rightControl;
+		int controlIndex{-1};
+
+		ControlOverlay* pickedControl = nullptr;
+		bool activePreview = true;
+
+		Context();
+		~Context();
 	};
 
 public:
@@ -34,6 +47,9 @@ public:
 	bool onEndLeftMouse(const InputValue& inputValue) override;
 	bool onInputAttach(const InputValue& inputValue) override;
 	bool onInputDetach(const InputValue& inputValue) override;
+
+	void genCurrentPointControl();
+	void updateCurrentPointControl();
 
 private:
 	AnimationCreatorCanvas* rCanvas{nullptr};

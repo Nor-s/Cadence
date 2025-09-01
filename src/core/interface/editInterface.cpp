@@ -285,7 +285,6 @@ EDIT_API Edit_Result UpdateEntityStrokeAlphaCurrentFrame(ENTITY_ID id, float a, 
 	}
 }
 
-
 // for undo
 EDIT_API Edit_Result UpdateEntityEnd(ENTITY_ID id)
 {
@@ -296,10 +295,10 @@ EDIT_API void RemoveSelection()
 {
 	if (gCurrentAnimCanvas)
 	{
-		auto entities = gCurrentAnimCanvas->mOverlayScene->findByComponent<BBoxControlComponent>();
+		auto entities = gCurrentAnimCanvas->mControlScene->findByComponent<BBoxControlComponent>();
 		for (auto& entity : entities)
 		{
-			gCurrentAnimCanvas->mOverlayScene->destroyEntity(entity);
+			gCurrentAnimCanvas->mControlScene->destroyEntity(entity);
 		}
 	}
 }

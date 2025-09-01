@@ -14,7 +14,7 @@ using EntityID = uint32_t;
 struct ShapeComponent;
 struct ElipsePathComponent;
 struct RectPathComponent;
-struct PathListComponent;
+struct PathComponent;
 struct SolidFillComponent;
 struct StrokeComponent;
 

@@ -154,7 +154,7 @@ Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 	polygon.outerRadius = radius;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localCenterPosition = minXy + wh * 0.5f;
+	transform.localCenterPosition = polygon.path.center = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
@@ -187,7 +187,7 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	star.innerRadius = radius / 2.0f;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localCenterPosition = minXy + wh * 0.5f;
+	star.path.center = transform.localCenterPosition = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
@@ -200,21 +200,37 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	return entity;
 }
 
-Entity Scene::createPathLayer(const PathList& pathList)
+Entity Scene::createPathLayer(PathPoints path)
 {
+	assert(path.empty() == false);
+
 	auto entity = CreateEntity(this, "path");
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathListComponent>();
-	entity.addComponent<StrokeComponent>();
+	auto& pathComponent = entity.addComponent<PathComponent>();
+	auto& stroke = entity.addComponent<StrokeComponent>();
 
-	path.path = pathList;
+	stroke.width = CommonSetting::Width_DefaultPathLine;
+
+	transform.anchorPoint = {0.0f, 0.0f};
+	transform.localCenterPosition = path[0].base;
+
+	for (auto& point : path)
+	{
+		point.base = point.base - transform.localCenterPosition;
+	}
+
+	shape.shape = tvg::Shape::gen();
+	shape.shape->ref();
+	shape.shape->id = id.id;
+
+	pathComponent.path = path;
 
 	entity.update();
 	mTvgScene->push(shape.shape);
 
-	return Entity();
+	return entity;
 }
 
 Entity Scene::createObb(const std::array<Vec2, 4>& points)
@@ -224,7 +240,7 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathListComponent>();
+	auto& path = entity.addComponent<PathComponent>();
 	auto& stroke = entity.addComponent<StrokeComponent>();
 
 	auto minx = std::min({points[0].x, points[1].x, points[2].x, points[3].x});
@@ -240,11 +256,11 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 
 	auto centerp = transform.localCenterPosition;
 	path.path.resize(5);
-	path.path[0].type = PathPoint::Type::Move;
-	path.path[1].type = PathPoint::Type::Line;
-	path.path[2].type = PathPoint::Type::Line;
-	path.path[3].type = PathPoint::Type::Line;
-	path.path[4].type = PathPoint::Type::Close;
+	path.path[0].type = PathPoint::Command::MoveTo;
+	path.path[1].type = PathPoint::Command::LineTo;
+	path.path[2].type = PathPoint::Command::LineTo;
+	path.path[3].type = PathPoint::Command::LineTo;
+	path.path[4].type = PathPoint::Command::Close;
 	path.center = Vec2{width / 2, height / 2};
 
 	for (int i = 0; i < 4; i++)
@@ -343,11 +359,11 @@ void Scene::onUpdate()
 		}
 	}
 
-	mRegistry.view<TransformComponent, PathListComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, PathListComponent& path, ShapeComponent& shape)
+	mRegistry.view<TransformComponent, PathComponent, ShapeComponent>().each(
+		[](auto entity, TransformComponent& transform, PathComponent& path, ShapeComponent& shape)
 		{
-			Update(shape, path);
 			Update(shape, transform);
+			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, ElipsePathComponent, ShapeComponent>().each(
 		[](auto entity, TransformComponent& transform, ElipsePathComponent& path, ShapeComponent& shape)

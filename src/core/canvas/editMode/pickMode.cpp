@@ -21,7 +21,7 @@ PickMode::~PickMode()
 {
 	if (mContext.hover.isNull() == false)
 	{
-		rCanvas->mOverlayScene->destroyEntity(mContext.hover);
+		rCanvas->mControlScene->destroyEntity(mContext.hover);
 	}
 }
 
@@ -44,10 +44,10 @@ bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 		onInputAttach({1.0f, 1.0f});
 		if (mContext.bbox == nullptr)
 		{
-			auto bbox = rCanvas->mOverlayScene->createEntity("bbox");
+			auto bbox = rCanvas->mControlScene->createEntity("bbox");
 			auto& bboxComponent = bbox.addComponent<BBoxControlComponent>();
 			bboxComponent.bbox =
-				std::make_unique<BBox>(rCanvas->getInputController(), rCanvas->mOverlayScene.get(), targetEntity);
+				std::make_unique<BBox>(rCanvas->getInputController(), rCanvas->mControlScene.get(), targetEntity);
 			mContext.bbox = bboxComponent.bbox.get();
 		}
 		else
@@ -84,7 +84,7 @@ bool PickMode::onMoveMouse(const InputValue& inputValue)
 	// todo: destroy/create -> hide/show
 	if (!mContext.hover.isNull())
 	{
-		rCanvas->mOverlayScene->destroyEntity(mContext.hover);
+		rCanvas->mControlScene->destroyEntity(mContext.hover);
 	}
 
 	if (mContext.bbox && mContext.bbox->onMoveMouse(inputValue))
@@ -97,7 +97,7 @@ bool PickMode::onMoveMouse(const InputValue& inputValue)
 	if (isPick)
 	{
 		std::array<Vec2, 4> points = GetObb(pickInfo.currentSelectedPaint);
-		mContext.hover = rCanvas->mOverlayScene->createObb(points);
+		mContext.hover = rCanvas->mControlScene->createObb(points);
 		mContext.hover.getComponent<StrokeComponent>().color = CommonSetting::Color_DefaultHoverOutline;
 	}
 
@@ -109,7 +109,7 @@ bool PickMode::onInputAttach(const InputValue& inputValue)
 	if (mContext.bbox != nullptr)
 		return false;
 
-	if (auto v = rCanvas->mOverlayScene->findByComponent<BBoxControlComponent>(); !v.empty())
+	if (auto v = rCanvas->mControlScene->findByComponent<BBoxControlComponent>(); !v.empty())
 	{
 		mContext.bbox = v[0].getComponent<BBoxControlComponent>().bbox.get();
 	}

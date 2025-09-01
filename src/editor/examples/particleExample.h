@@ -93,7 +93,7 @@ struct ParticleExample : tvgexam::Example
 
 		// rain drops
 		size = (float) w / COUNT;
-		raindrops.reserve(COUNT);
+		raindrops.reserve(static_cast<size_t>(COUNT));
 
 		for (int i = 0; i < COUNT; ++i)
 		{
