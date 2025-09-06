@@ -197,22 +197,29 @@ struct TransformComponent
 	Vec2 localCenterPosition{0.0f, 0.0f};	 // center of layer
 	Vec2 scale{1.0f, 1.0f};
 	float rotation{};
-	tvg::Matrix transform;
+
+	tvg::Matrix localTransform;
+	tvg::Matrix worldTransform;
+	tvg::Matrix inverseWorldTransform;
 
 	// todo: parent transform
 	void update()
 	{
-		transform = identity();
-		applyTranslate(&transform, localCenterPosition);
-		applyRotateR(&transform, rotation);
-		applyScaleR(&transform, scale);
-		applyTranslateR(&transform, anchorPoint * -1.0f);
+		localTransform = identity();
+		inverseWorldTransform = identity();
+
+		applyTranslate(&localTransform, localCenterPosition);
+		applyRotateR(&localTransform, rotation);
+		applyScaleR(&localTransform, scale);
+		applyTranslateR(&localTransform, anchorPoint * -1.0f);
 		worldPosition = localCenterPosition + anchorPoint;
+
+		worldTransform = localTransform;	// todo: parent
+		inverse(&worldTransform, &inverseWorldTransform);
 	}
-	tvg::Matrix inverse() const
+	const tvg::Matrix& inverse() const
 	{
-		auto ret = identity();
-		return inverse(&transform, &ret) ? ret : identity();
+		return inverseWorldTransform;
 	}
 	static inline void identity(tvg::Matrix* m)
 	{
@@ -344,7 +351,7 @@ static void Reset(ShapeComponent& shape)
 static void Update(ShapeComponent& shape, TransformComponent& transform)
 {
 	transform.update();
-	shape.shape->transform(transform.transform);
+	shape.shape->transform(transform.localTransform);
 }
 
 static void Update(ShapeComponent& shape, PathComponent& path)
@@ -368,7 +375,7 @@ static void Update(ShapeComponent& shape, PathComponent& path)
 				case PathPoint::Command::MoveTo:
 				{
 					types.emplace_back(tvg::PathCommand::MoveTo);
-					points.push_back(tvg::Point{p.base.x, p.base.y});
+					points.push_back(tvg::Point{p.localPosition.x, p.localPosition.y});
 					break;
 				}
 				case PathPoint::Command::CubicTo:
@@ -376,19 +383,19 @@ static void Update(ShapeComponent& shape, PathComponent& path)
 					assert(i != 0);
 
 					auto& left = path.path[i - 1];
-					auto leftP = left.base + left.deltaRightControl;
-					auto rightP = p.base + p.deltaLeftControl;
+					auto leftP = left.localPosition + left.deltaRightControlPosition;
+					auto rightP = p.localPosition + p.deltaLeftControlPosition;
 
 					types.emplace_back(tvg::PathCommand::CubicTo);
 					points.push_back(tvg::Point{leftP.x, leftP.y});
 					points.push_back(tvg::Point{rightP.x, rightP.y});
-					points.push_back(tvg::Point{p.base.x, p.base.y});
+					points.push_back(tvg::Point{p.localPosition.x, p.localPosition.y});
 					break;
 				}
 				case PathPoint::Command::LineTo:
 				{
 					types.emplace_back(tvg::PathCommand::LineTo);
-					points.push_back(tvg::Point{p.base.x, p.base.y});
+					points.push_back(tvg::Point{p.localPosition.x, p.localPosition.y});
 					break;
 				}
 			}
@@ -415,7 +422,7 @@ static void Update(ShapeComponent& shape, StarPolygonPathComponent& path)
 		const float py = std::sin(ToRadian(degree)) * r;
 
 		auto type = (i == 0 ? PathPoint::Command::MoveTo : PathPoint::Command::LineTo);
-		path.path.path.push_back({.base{px, py}, .type = type});
+		path.path.path.push_back({.localPosition{px, py}, .type = type});
 	}
 	path.path.path.push_back({.type = PathPoint::Command::Close});
 
@@ -439,7 +446,7 @@ static void Update(ShapeComponent& shape, PolygonPathComponent& path)
 		const float py = std::sin(ToRadian(degree)) * r;
 		auto type = (i == 0 ? PathPoint::Command::MoveTo : PathPoint::Command::LineTo);
 
-		path.path.path.push_back({.base{px, py}, .type = type});
+		path.path.path.push_back({.localPosition{px, py}, .type = type});
 	}
 
 	path.path.path.push_back({.type = PathPoint::Command::Close});

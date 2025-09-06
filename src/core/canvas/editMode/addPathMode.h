@@ -9,34 +9,11 @@
 namespace core
 {
 class Scene;
-class ControlOverlay;
+class UIShape;
+class EditPath;
 
 class AddPathMode : public EditMode
 {
-	struct Context
-	{
-		Vec2 startPos;
-		Vec2 beforePos;
-		Vec2 currentPos;
-		PathPoints path;
-		std::vector<std::unique_ptr<ControlOverlay>> controlList;
-		int clickedIndex{-1};
-		PathPoint::Command currentEditType{PathPoint::Command::LineTo};
-		Entity line;
-
-		std::unique_ptr<ControlOverlay> preview;
-		std::unique_ptr<ControlOverlay> controlLine;
-		std::unique_ptr<ControlOverlay> leftControl;
-		std::unique_ptr<ControlOverlay> rightControl;
-		int controlIndex{-1};
-
-		ControlOverlay* pickedControl = nullptr;
-		bool activePreview = true;
-
-		Context();
-		~Context();
-	};
-
 public:
 	AddPathMode(AnimationCreatorCanvas* canvas);
 	~AddPathMode();
@@ -48,12 +25,12 @@ public:
 	bool onInputAttach(const InputValue& inputValue) override;
 	bool onInputDetach(const InputValue& inputValue) override;
 
-	void genCurrentPointControl();
-	void updateCurrentPointControl();
+	void init();
 
 private:
 	AnimationCreatorCanvas* rCanvas{nullptr};
-	Context mContext{};
+	Entity mTargetPath;
+	std::unique_ptr<EditPath> mEditPath{nullptr};
 };
 }	 // namespace core
 

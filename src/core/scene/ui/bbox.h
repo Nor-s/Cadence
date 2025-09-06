@@ -12,7 +12,7 @@ namespace core
 class InputActionBinding;
 class InputController;
 class InputValue;
-class ControlOverlay;
+class UIShape;
 class Scene;
 
 class BBox
@@ -61,7 +61,7 @@ private:
 	Vec2 mBeforePoint{0.0f, 0.0f};
 	Vec2 mCurrentPoint{0.0f, 0.0f};
 	ControlType mCurrentControlType{ControlTypeCount};
-	std::array<std::unique_ptr<ControlOverlay>, ControlTypeCount> mControlBox;
+	std::array<std::unique_ptr<UIShape>, ControlTypeCount> mControlBox;
 	std::vector<InputActionBinding*> mInputActionBindings;
 	bool mIsDrag{false};
 };

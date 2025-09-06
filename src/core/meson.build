@@ -41,6 +41,8 @@ source_file = [
     meson.current_source_dir().join('scene/ui/bbox.h'),
     meson.current_source_dir().join('scene/ui/controlBox.h'),
     meson.current_source_dir().join('scene/ui/controlBox.cpp'),
+    meson.current_source_dir().join('scene/ui/editPath.cpp'),
+    meson.current_source_dir().join('scene/ui/editPath.h'),
 
     meson.current_source_dir().join('scene/component/components.cpp'),
     meson.current_source_dir().join('scene/component/components.h'),

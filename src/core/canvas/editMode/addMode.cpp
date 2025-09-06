@@ -64,7 +64,7 @@ bool AddMode::onEndLeftMouse(const InputValue& inputValue)
 		rCanvas->mControlScene->destroyEntity(mContext.newEntity);
 	}
 	auto wh = end - start;
-	float threshold = 20.0f;
+	float threshold = 10.0f;
 	if (wh.w > threshold && wh.h > threshold)
 	{
 		switch (mType)
@@ -83,6 +83,8 @@ bool AddMode::onEndLeftMouse(const InputValue& inputValue)
 				break;
 		};
 	}
+	else
+		return false;
 	return true;
 }
 bool AddMode::onInputDetach(const InputValue& inputValue)

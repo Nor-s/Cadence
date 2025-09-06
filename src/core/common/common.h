@@ -19,7 +19,7 @@ struct CommonSetting
 	inline static const Vec3 Color_DefaultHoverOutline{200.0f, 100.0f, 50.0f};
 	inline static const Vec3 Color_DefaultControlBoxOutline{255.0f, 127.0f, 63.0f};
 	inline static const Vec3 Color_DefaultControlBoxInner{250.0f, 250.0f, 255.0f};
-	inline static const Vec3 Color_DefaultActiveFillStrokeEllipse{250.0f, 200.0f, 150.0f};
+	inline static const Vec3 Color_DefaultActiveFillStrokeEllipse{250.0f, 180.0f, 130.0f};
 	inline static const Vec3 Color_DefaultStroke{4.0f, 5.0f, 5.0f};
 	inline static const Vec3 Color_DefaultFill{127.0f, 127.0f, 127.0f};
 
@@ -27,26 +27,28 @@ struct CommonSetting
 	inline static const float Width_DefaultBBoxRotationControlBox{50.0f};
 	inline static const float Width_DefaultPathPointControlBox{10.0f};
 	inline static const float Width_DefaultPathLine{5.0f};
+	inline static const float Width_DefaultStroke{1.5f};
 
 	inline static int Count_DefaultPolygonPathPoint{3};
 	inline static int Count_DefaultStarPolygonPathPoint{5};
 
-	inline static const float Threshold_AddPathModeChangeCurve{1.5f};
+	inline static const float Threshold_AddPathModeChangeCurve{200.0f};
+	inline static const float Threshold_AddPathLayer{200.0f};
 };
 
 struct PathPoint
 {
 	enum class Command
 	{
-		MoveTo,
 		LineTo,
+		MoveTo,
 		CubicTo,
 		Close
 	};
 
-	Vec2 base{0.0f, 0.0f};
-	Vec2 deltaLeftControl{0.0f, 0.0f};
-	Vec2 deltaRightControl{0.0f, 0.0f};
+	Vec2 localPosition{0.0f, 0.0f};
+	Vec2 deltaLeftControlPosition{0.0f, 0.0f};
+	Vec2 deltaRightControlPosition{0.0f, 0.0f};
 	Command type{Command::LineTo};
 };
 

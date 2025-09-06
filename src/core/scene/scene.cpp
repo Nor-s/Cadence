@@ -167,6 +167,13 @@ Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 	return entity;
 }
 
+Entity Scene::createPolygonFillStrokeLayer(Vec2 minXy, Vec2 wh)
+{
+	auto entity = createPolygonFillLayer(minXy, wh);
+	entity.addComponent<StrokeComponent>();
+	return entity;
+}
+
 Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 {
 	if (wh.w * wh.h < 1e-6)
@@ -214,11 +221,11 @@ Entity Scene::createPathLayer(PathPoints path)
 	stroke.width = CommonSetting::Width_DefaultPathLine;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localCenterPosition = path[0].base;
+	transform.localCenterPosition = path[0].localPosition;
 
 	for (auto& point : path)
 	{
-		point.base = point.base - transform.localCenterPosition;
+		point.localPosition = point.localPosition - transform.localCenterPosition;
 	}
 
 	shape.shape = tvg::Shape::gen();
@@ -226,6 +233,7 @@ Entity Scene::createPathLayer(PathPoints path)
 	shape.shape->id = id.id;
 
 	pathComponent.path = path;
+	pathComponent.center = transform.localCenterPosition;
 
 	entity.update();
 	mTvgScene->push(shape.shape);
@@ -265,7 +273,7 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 
 	for (int i = 0; i < 4; i++)
 	{
-		path.path[i].base = points[i] - centerp;
+		path.path[i].localPosition = points[i] - centerp;
 	}
 
 	shape.shape = tvg::Shape::gen();

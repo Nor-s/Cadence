@@ -39,6 +39,7 @@ public:
 	Entity createRectFillLayer(Vec2 minXy, Vec2 wh);
 	Entity createRectFillStrokeLayer(Vec2 minXy, Vec2 wh);
 	Entity createPolygonFillLayer(Vec2 minXy, Vec2 wh);
+	Entity createPolygonFillStrokeLayer(Vec2 minXy, Vec2 wh);
 	Entity createStarFillLayer(Vec2 minXy, Vec2 wh);
 
 	// a deep-copied PathLayer using the first point of the pathList as the origin.

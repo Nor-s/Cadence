@@ -8,7 +8,6 @@
 #include "animationCreatorCanvas.h"
 #include "animation/animator.h"
 
-
 #include "common/common.h"
 
 #include "editMode/pickMode.h"
@@ -71,7 +70,7 @@ bool AnimationCreatorInputController::onDragLeftMouse(const InputValue& inputVal
 }
 bool AnimationCreatorInputController::onMoveMouse(const InputValue& inputValue)
 {
-	if(mEditMode == nullptr)
+	if (mEditMode == nullptr)
 		return false;
 
 	return mEditMode->onMoveMouse(inputValue);
@@ -83,15 +82,15 @@ bool AnimationCreatorInputController::onEndLeftMouse(const InputValue& inputValu
 	if (mEditMode == nullptr)
 		return false;
 
-	if(mEditMode->onEndLeftMouse(inputValue))
+	if (mEditMode->onEndLeftMouse(inputValue))
 	{
-		switch(mMode)
+		switch (mMode)
 		{
 			case EditModeType::ADD_ELLIPSE:
-			case EditModeType::ADD_PEN_PATH:
 			case EditModeType::ADD_POLYGON:
 			case EditModeType::ADD_STAR:
 			case EditModeType::ADD_SQUARE:
+			case EditModeType::ADD_PEN_PATH:
 			{
 				setMode(EditModeType::PICK);
 				break;
@@ -157,6 +156,5 @@ void AnimationCreatorInputController::applyEditMode()
 		}
 	};
 }
-
 
 }	 // namespace core
