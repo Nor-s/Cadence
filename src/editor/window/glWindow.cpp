@@ -3,7 +3,6 @@
 #include "../app.h"
 
 #include <ImGuiNotify.hpp>
-#include <icons/icons.h>
 
 namespace editor
 {
@@ -152,7 +151,7 @@ GLWindow::GLWindow(const core::Size& res)
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigWindowsMoveFromTitleBarOnly = true;
-	io.ConfigWindowsResizeFromEdges      = true;
+	io.ConfigWindowsResizeFromEdges = true;
 	(void) io;
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;	 // Enable Keyboard Controls
 	// io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;	 // Enable Gamepad Controls
@@ -171,8 +170,6 @@ GLWindow::GLWindow(const core::Size& res)
 
 	ImGui_ImplSDL2_InitForOpenGL(mWindow, mContext);
 	ImGui_ImplOpenGL3_Init(mGlslVersion.c_str());
-
-	ImGui::LoadInternalIcons(io.Fonts);
 }
 
 GLWindow::~GLWindow()
@@ -188,9 +185,33 @@ GLWindow::~GLWindow()
 	}
 }
 
+void GLWindow::update()
+{
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplSDL2_NewFrame();
+	ImGui::NewFrame();
+
+	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+	ImGuiIO& io = ImGui::GetIO();
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glViewport(0, 0, (int) io.DisplaySize.x, (int) io.DisplaySize.y);
+	glClearColor(clear_color.x * clear_color.w, clear_color.y * clear_color.w, clear_color.z * clear_color.w,
+				 clear_color.w);
+	glClear(GL_COLOR_BUFFER_BIT);
+}
+
 void GLWindow::refresh()
 {
 	SDL_GL_SwapWindow(mWindow);
+}
+
+void GLWindow::drawend()
+{
+	// ImGUI/SDL Rendering
+	ImGui::Render();
+	SDL_GL_MakeCurrent(mWindow, mContext);
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+	refresh();
 }
 
 }	 // namespace editor

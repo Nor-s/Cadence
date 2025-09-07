@@ -19,7 +19,7 @@ struct AccessorExample : tvgexam::Example
 	{
 		// load the tvg file
 		auto picture = tvg::Picture::gen();
-		auto result = picture->load(EXAMPLE_DIR "/svg/favorite_on.svg");
+		auto result = picture->load(RESOURCE_DIR "/svg/favorite_on.svg");
 		if (!tvgexam::verify(result))
 			return false;
 		picture->size(static_cast<float>(w), static_cast<float>(h));

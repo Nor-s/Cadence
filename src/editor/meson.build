@@ -13,6 +13,14 @@ source_file = [
     'imgui/imguiTimeline.h',
     'imgui/imguiTimeline.cpp',
 
+
+    'imgui/imguiComponent.cpp',
+    'imgui/imguiComponent.h',
+    'imgui/imguiManager.h',
+    'imgui/imguiManager.cpp',
+    'imgui/imguiSceneHierarchy.cpp',
+    'imgui/imguiSceneHierarchy.h',
+
     'window/window.cpp',
     'window/glWindow.cpp',
 

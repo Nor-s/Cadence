@@ -12,13 +12,13 @@ namespace core
 {
 class CanvasWrapper;
 class InputController;
-}
+}	 // namespace core
 namespace editor
 {
 class Window;
+class ImGuiManager;
 }	 // namespace editor
 
-// todo: singleton
 class App
 {
 public:
@@ -56,6 +56,7 @@ public:
 
 	void init();
 	void loop();
+	void update();
 	bool processEvent();
 	void draw();
 	void drawgui();
@@ -66,6 +67,7 @@ public:
 
 private:
 	AppState mState;
+	std::unique_ptr<editor::ImGuiManager> mImguiManager;
 	std::unique_ptr<editor::Window> mWindow;
 	std::unique_ptr<editor::EventController> mEventController;
 	std::vector<core::CanvasWrapper*> mCanvasList;

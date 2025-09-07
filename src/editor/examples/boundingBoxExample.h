@@ -86,7 +86,7 @@ struct BoundingBoxExample : tvgexam::Example
 		}
 
 		{
-			if (!tvgexam::verify(tvg::Text::load(EXAMPLE_DIR "/font/Arial.ttf")))
+			if (!tvgexam::verify(tvg::Text::load(RESOURCE_DIR "/font/Arial.ttf")))
 				return false;
 			auto text = tvg::Text::gen();
 			text->font("Arial");
@@ -119,7 +119,7 @@ struct BoundingBoxExample : tvgexam::Example
 
 		{
 			auto svg = tvg::Picture::gen();
-			svg->load(EXAMPLE_DIR "/svg/tiger.svg");
+			svg->load(RESOURCE_DIR "/svg/tiger.svg");
 			svg->scale(0.3f);
 			svg->translate(620, 50);
 			canvas->push(svg);
@@ -128,7 +128,7 @@ struct BoundingBoxExample : tvgexam::Example
 
 		{
 			auto svg = tvg::Picture::gen();
-			svg->load(EXAMPLE_DIR "/svg/tiger.svg");
+			svg->load(RESOURCE_DIR "/svg/tiger.svg");
 			svg->scale(0.2f);
 			svg->translate(140, 215);
 			svg->rotate(45);
@@ -142,7 +142,7 @@ struct BoundingBoxExample : tvgexam::Example
 			scene->translate(280, 330);
 
 			auto img = tvg::Picture::gen();
-			img->load(EXAMPLE_DIR "/image/test.png");
+			img->load(RESOURCE_DIR "/image/test.png");
 			scene->push(img);
 
 			canvas->push(scene);
@@ -156,7 +156,7 @@ struct BoundingBoxExample : tvgexam::Example
 			scene->translate(200, 480);
 
 			auto img = tvg::Picture::gen();
-			img->load(EXAMPLE_DIR "/image/test.jpg");
+			img->load(RESOURCE_DIR "/image/test.jpg");
 			scene->push(img);
 
 			canvas->push(scene);

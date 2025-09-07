@@ -14,7 +14,9 @@ public:
 	virtual ~Window();
 
 	void show();
-	virtual void refresh() {};
+	virtual void update(){};
+	virtual void refresh(){};
+	virtual void drawend(){};
 
 	SDL_Window* mWindow = nullptr;
 	SDL_GLContext mContext = nullptr;

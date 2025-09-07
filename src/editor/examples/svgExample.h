@@ -105,7 +105,7 @@ struct SvgExample : tvgexam::Example
 		this->h = h;
 		this->size = w / NUM_PER_ROW;
 
-		this->scandir(EXAMPLE_DIR "/svg");
+		this->scandir(RESOURCE_DIR "/svg");
 
 		/* This showcase demonstrates the asynchronous loading of tvg.
 		   For this, pictures are pushed at a certain sync time.

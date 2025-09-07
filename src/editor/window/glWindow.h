@@ -14,7 +14,9 @@ public:
 	GLWindow(const core::Size& res);
 	~GLWindow();
 
+	void update() override;
 	void refresh() override;
+	void drawend() override;
 
 private:
 	std::string mGlslVersion;

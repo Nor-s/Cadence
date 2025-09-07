@@ -60,11 +60,11 @@ struct ParticleExample : tvgexam::Example
 		srand(100);
 
 		auto city = tvg::Picture::gen();
-		city->load(EXAMPLE_DIR "/image/particle.jpg");
+		city->load(RESOURCE_DIR "/image/particle.jpg");
 		canvas->push(city);
 
 		auto cloud1 = tvg::Picture::gen();
-		cloud1->load(EXAMPLE_DIR "/image/clouds.png");
+		cloud1->load(RESOURCE_DIR "/image/clouds.png");
 		cloud1->opacity(60);
 		canvas->push(cloud1);
 

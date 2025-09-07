@@ -11,8 +11,8 @@ namespace fs = std::filesystem;
 
 #ifdef __EMSCRIPTEN__
 static fs::path s_CurrentDirectory = "/";
-#else 
-static fs::path s_CurrentDirectory = EXAMPLE_DIR;
+#else
+static fs::path s_CurrentDirectory = RESOURCE_DIR;
 #endif
 
 namespace editor
@@ -30,7 +30,7 @@ void ImguiContentBrowser::draw()
 		}
 	}
 
-    // todo: Button, Selectable -> add Icon 
+	// todo: Button, Selectable -> add Icon
 	for (auto& entry : fs::directory_iterator(s_CurrentDirectory))
 	{
 		const auto& path = entry.path();
@@ -47,14 +47,14 @@ void ImguiContentBrowser::draw()
 		{
 			ImGui::Selectable(name.c_str());
 
-            ImGui::PushID(name.c_str());
+			ImGui::PushID(name.c_str());
 			if (ImGui::BeginDragDropSource())
 			{
 				ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", path.string().c_str(), path.string().length() + 1);
 				ImGui::Text("%s", name.c_str());
 				ImGui::EndDragDropSource();
 			}
-            ImGui::PopID();
+			ImGui::PopID();
 		}
 	}
 

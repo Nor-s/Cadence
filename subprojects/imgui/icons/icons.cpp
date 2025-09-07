@@ -9,7 +9,6 @@ extern const char StepMath_compressed_data_base85[];
 bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
 {
 	auto& io = ImGui::GetIO();
-	io.Fonts->AddFontDefault();
 
 	float baseFontSize = 16.0f;
 	float icons_size = 13.0f;	 // baseFontSize * 2.0f / 3.0f; // FontAwesome fonts need to have their sizes reduced
@@ -67,18 +66,18 @@ bool ImGui::LoadInternalIcons(ImFontAtlas* atlas)
 	// atlas->AddFontFromFileTTF("./resources/font/D2Coding.ttf", 16.0f, NULL, atlas->GetGlyphRangesKorean());
 	atlas->AddFontFromMemoryCompressedBase85TTF(fa_regular_compressed_data_base85, icons_size, &icons_config,
 												fa_icons_ranges);
-	atlas->AddFontFromMemoryCompressedBase85TTF(
-		fa_solid_compressed_data_base85, icons_size, &icons_config, fa_icons_ranges);
+	atlas->AddFontFromMemoryCompressedBase85TTF(fa_solid_compressed_data_base85, icons_size, &icons_config,
+												fa_icons_ranges);
 	float large_icon_size = 30.0f;
 	ImFontConfig big_icons_config = icons_config;
 	big_icons_config.SizePixels = large_icon_size;
 	big_icons_config.GlyphOffset.y = -3;
 	big_icons_config.GlyphOffset.x = -6;
-    big_icons_config.MergeMode = false;
+	big_icons_config.MergeMode = false;
 
-	atlas->AddFontFromMemoryCompressedBase85TTF(
-		fa_solid_compressed_data_base85, large_icon_size, &big_icons_config, fa_icons_ranges);
-    big_icons_config.MergeMode = true;
+	atlas->AddFontFromMemoryCompressedBase85TTF(fa_solid_compressed_data_base85, large_icon_size, &big_icons_config,
+												fa_icons_ranges);
+	big_icons_config.MergeMode = true;
 	atlas->AddFontFromMemoryCompressedBase85TTF(kenney_compressed_data_base85, large_icon_size, &big_icons_config,
 												ki_icons_ranges);
 	io.Fonts->Build();
