@@ -29,6 +29,10 @@ ImGuiManager::~ImGuiManager()
 {
 }
 
+void ImGuiManager::update()
+{
+}
+
 void ImGuiManager::draw()
 {
 	drawDocSpace();
@@ -45,27 +49,26 @@ void ImGuiManager::drawDocSpace()
 {
 	static ImGuiDockNodeFlags dockspaceFlags = ImGuiDockNodeFlags_None;
 
+	ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+	ImGui::SetNextWindowViewport(viewport->ID);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+	ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+	windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+				   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+
+	auto& io = ImGui::GetIO();
+
 	{
-		ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_MenuBar;
-		const ImGuiViewport* viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowPos(viewport->WorkPos);
-		ImGui::SetNextWindowSize(viewport->WorkSize);
-		ImGui::SetNextWindowViewport(viewport->ID);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		windowFlags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-					   ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
 		ImGui::Begin("##ROOT DockSpace", NULL, windowFlags);
 
 		ImGui::PopStyleVar(3);
 
-		float ribbon_h = 64;
-		if (ImGui::BeginMenuBar())
-		{
-			ImGui::Text("🚀");
-			ImGui::EndMenuBar();
-		}
+		drawDocMenuBar();
+
 		ImGuiIO& io = ImGui::GetIO();
 		if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
 		{
@@ -73,6 +76,116 @@ void ImGuiManager::drawDocSpace()
 			ImGui::DockSpace(dockspaceId, ImVec2(0.0f, 0.0f), dockspaceFlags | ImGuiDockNodeFlags_PassthruCentralNode);
 		}
 		ImGui::End();
+	}
+}
+void ImGuiManager::drawDocMenuBar()
+{
+	if (ImGui::BeginMenuBar())
+	{
+		if (ImGui::BeginMenu("File"))
+		{
+			ImGui::MenuItem("(TODO)New", "Ctrl+N");
+			ImGui::MenuItem("(TODO)Open...", "Ctrl+O");
+			ImGui::Separator();
+			ImGui::MenuItem("(TODO)Save", "Ctrl+S");
+			ImGui::MenuItem("(TODO)Save As GIF");
+			ImGui::MenuItem("(TODO)Save As Lottie");
+			ImGui::Separator();
+			if (ImGui::MenuItem("(TODO)Exit"))
+			{
+			}
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Edit"))
+		{
+			ImGui::MenuItem("(TODO)Undo", "Ctrl+Z");
+			ImGui::MenuItem("(TODO)Redo", "Ctrl+Y");
+			ImGui::Separator();
+			ImGui::MenuItem("(TODO)Cut", "Ctrl+X");
+			ImGui::MenuItem("(TODO)Copy", "Ctrl+C");
+			ImGui::MenuItem("(TODO)Paste", "Ctrl+V");
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Window"))
+		{
+			ImGui::MenuItem("(TODO)Reset Layout");
+			ImGui::MenuItem("(TODO)Toggle Docking");
+			ImGui::EndMenu();
+		}
+		if (ImGui::BeginMenu("Help"))
+		{
+			ImGui::MenuItem("(TODO)About");
+			ImGui::EndMenu();
+		}
+
+		ImGui::Text("    | ");
+		ImGui::SameLine();
+
+		enum class ModeType
+		{
+			Normal,
+			Pen,
+			Script
+		};
+		static ModeType currentMode = ModeType::Normal;
+
+		auto RadioButtonLike = [&](const char* label, ModeType value)
+		{
+			bool selected = (currentMode == value);
+
+			ImGuiStyle& style = ImGui::GetStyle();
+			ImVec4 colBtn = style.Colors[ImGuiCol_Button];
+			ImVec4 colHover = style.Colors[ImGuiCol_ButtonHovered];
+			ImVec4 colActive{};
+			colBtn.w = 0.0f;
+			colActive.x = 0.5f;
+			colActive.y = 0.2f;
+			colActive.z = 0.1f;
+			colActive.w = 1.0f;
+
+			if (selected)
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, colActive);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colHover);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, colActive);
+			}
+			else
+			{
+				ImGui::PushStyleColor(ImGuiCol_Button, colBtn);
+				ImGui::PushStyleColor(ImGuiCol_ButtonHovered, colHover);
+				ImGui::PushStyleColor(ImGuiCol_ButtonActive, colBtn);
+			}
+
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 0.0f);
+			if (ImGui::Button(label))
+			{
+				currentMode = value;
+			}
+			ImGui::PopStyleVar();
+			ImGui::PopStyleColor(3);
+		};
+
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0.0f, 0.0f});
+		RadioButtonLike("Normal", ModeType::Normal);
+		// ImGui::SameLine();
+		// RadioButtonLike("Pen", ModeType::Pen);
+		ImGui::SameLine();
+		RadioButtonLike("Script", ModeType::Script);
+		ImGui::PopStyleVar(1);
+
+		ImGuiIO& io = ImGui::GetIO();
+		char fps_buf[64];
+		snprintf(fps_buf, sizeof(fps_buf), "FrameRate: %-10.0f", io.Framerate);
+
+		const float availW = ImGui::GetContentRegionAvail().x;
+		const float bufWidth = 120.0f;
+		if (availW - bufWidth > 0)
+		{
+			ImGui::SetCursorPosX(ImGui::GetCursorPosX() + (availW - bufWidth));
+			ImGui::Text(fps_buf);
+		}
+
+		ImGui::EndMenuBar();
 	}
 }
 void ImGuiManager::drawCanvas(std::vector<core::CanvasWrapper*>& canvasList)

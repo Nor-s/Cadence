@@ -16,6 +16,7 @@ class ImGuiManager
 public:
 	ImGuiManager();
 	~ImGuiManager();
+	void update();
 	void draw();
 	void drawCanvas(std::vector<core::CanvasWrapper*>& canvasList);
 	void drawend();
@@ -23,6 +24,7 @@ public:
 private:
 	void init();
 	void drawDocSpace();
+	void drawDocMenuBar();
 };
 
 }	 // namespace editor
