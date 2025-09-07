@@ -28,11 +28,12 @@ class PickMode : public EditMode
 	};
 
 public:
-    PickMode(AnimationCreatorCanvas* canvas);
-    ~PickMode();
+	PickMode(AnimationCreatorCanvas* canvas);
+	~PickMode();
 	void onUpdate() override;
 	bool pick(const InputValue& inputValue, tvg::Paint* paint, int depth);
 	bool pick(const InputValue& inputValue);
+	bool onDoubleClickLeftMouse(const InputValue& inputValue) override;
 	bool onStarClickLefttMouse(const InputValue& inputValue) override;
 	bool onDragLeftMouse(const InputValue& inputValue) override;
 	bool onMoveMouse(const InputValue& inputValue) override;
@@ -44,6 +45,6 @@ private:
 	AnimationCreatorCanvas* rCanvas{nullptr};
 	Context mContext{};
 };
-}
+}	 // namespace core
 
 #endif

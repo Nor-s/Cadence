@@ -4,28 +4,34 @@ using namespace core;
 
 void InputEventHandler::setInputContoller(InputController* inputController)
 {
-    LOG_INFO("set input controller");
+	LOG_INFO("set input controller");
 	if (rInputController && rInputController != inputController)
 	{
 		rInputController->broadcast(InputType::INPUT_DETACH, InputTrigger::Triggered, 1.0f);
 		mState.init();
 	}
 	rInputController = inputController;
-    if(rInputController)
-    {
-	    rInputController->broadcast(InputType::INPUT_ATTACH, InputTrigger::Triggered, 1.0f);
-    }
+	if (rInputController)
+	{
+		rInputController->broadcast(InputType::INPUT_ATTACH, InputTrigger::Triggered, 1.0f);
+	}
 }
 
 void InputEventHandler::processEvent(const SDL_Event& event)
 {
-    auto& io = ImGui::GetIO();
+	auto& io = ImGui::GetIO();
 	if (rInputController == nullptr)
 		return;
-	
+
 	const auto mouseOffset = core::io::mouseOffset;
 	const auto mouseX = event.motion.x + mouseOffset.x;
 	const auto mouseY = event.motion.y + mouseOffset.y;
+
+	mState.clickTimer += core::io::deltaTime;
+	if (mState.clickTimer >= Threshold_doubleClickTime)
+	{
+		mState.clickCount = 0.0f;
+	}
 
 	switch (event.type)
 	{
@@ -39,6 +45,8 @@ void InputEventHandler::processEvent(const SDL_Event& event)
 		{
 			if (event.button.button == SDL_BUTTON_LEFT)
 			{
+				mState.clickTimer = 0.0f;
+				mState.clickCount++;
 				mState.mousePos = {mouseX, mouseY};
 				rInputController->broadcast(InputType::MOUSE_LEFT_DOWN, InputTrigger::Started, {mouseX, mouseY});
 				mState.leftMouseDown = true;
@@ -47,11 +55,18 @@ void InputEventHandler::processEvent(const SDL_Event& event)
 		}
 		case SDL_MOUSEBUTTONUP:
 		{
-			if (mState.leftMouseDown&&event.button.button == SDL_BUTTON_LEFT)
+			if (mState.leftMouseDown && event.button.button == SDL_BUTTON_LEFT)
 			{
 				mState.mousePos = {mouseX, mouseY};
 				rInputController->broadcast(InputType::MOUSE_LEFT_DOWN, InputTrigger::Ended, {mouseX, mouseY});
 				mState.leftMouseDown = false;
+
+				if (mState.clickCount == 2)
+				{
+					mState.clickCount = 0;
+					rInputController->broadcast(InputType::MOUSE_LEFT_DOUBLE_CLICK, InputTrigger::Triggered,
+												{mouseX, mouseY});
+				}
 			}
 			break;
 		}

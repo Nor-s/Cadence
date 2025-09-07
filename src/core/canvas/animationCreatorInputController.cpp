@@ -24,6 +24,8 @@ AnimationCreatorInputController::AnimationCreatorInputController(AnimationCreato
 
 	mHandle = std::make_unique<InputController>();
 
+	mHandle->bindAction(InputAction(InputType::MOUSE_LEFT_DOUBLE_CLICK), InputTrigger::Triggered, this,
+						&ThisClass::onDoubleClickLefttMouse);
 	mHandle->bindAction(InputAction(InputType::MOUSE_LEFT_DOWN), InputTrigger::Started, this,
 						&ThisClass::onStarClickLefttMouse);
 	mHandle->bindAction(InputAction(InputType::MOUSE_LEFT_DOWN), InputTrigger::Triggered, this,
@@ -48,6 +50,13 @@ void AnimationCreatorInputController::setMode(EditModeType mode)
 	LOG_INFO("change edit mode: {}", (int) mMode);
 	mMode = mode;
 	applyEditMode();
+}
+
+bool AnimationCreatorInputController::onDoubleClickLefttMouse(const InputValue& inputValue)
+{
+	if (mEditMode == nullptr)
+		return false;
+	return mEditMode->onDoubleClickLeftMouse(inputValue);
 }
 
 bool AnimationCreatorInputController::onStarClickLefttMouse(const InputValue& inputValue)

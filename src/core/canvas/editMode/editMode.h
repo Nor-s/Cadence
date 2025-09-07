@@ -26,12 +26,24 @@ class EditMode
 {
 public:
 	virtual ~EditMode() = default;
-	virtual void onUpdate() {}
+	virtual void onUpdate()
+	{
+	}
+	virtual bool onDoubleClickLeftMouse(const InputValue& inputValue)
+	{
+		return false;
+	}
 	virtual bool onStarClickLefttMouse(const InputValue& inputValue) = 0;
 	virtual bool onDragLeftMouse(const InputValue& inputValue) = 0;
-	virtual bool onMoveMouse(const InputValue& inputValue) {return false;}
+	virtual bool onMoveMouse(const InputValue& inputValue)
+	{
+		return false;
+	}
 	virtual bool onEndLeftMouse(const InputValue& inputValue) = 0;
-	virtual bool onInputAttach(const InputValue& inputValue) {return false;};
+	virtual bool onInputAttach(const InputValue& inputValue)
+	{
+		return false;
+	};
 	virtual bool onInputDetach(const InputValue& inputValue) = 0;
 };
 

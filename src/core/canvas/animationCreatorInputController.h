@@ -24,6 +24,7 @@ public:
 	}
 	void onUpdate();
 
+	bool onDoubleClickLefttMouse(const InputValue& inputValue);
 	bool onStarClickLefttMouse(const InputValue& inputValue);
 	bool onDragLeftMouse(const InputValue& inputValue);
 	bool onMoveMouse(const InputValue& inputValue);

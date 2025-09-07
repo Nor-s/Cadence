@@ -29,6 +29,33 @@ void PickMode::onUpdate()
 {
 }
 
+bool PickMode::onDoubleClickLeftMouse(const InputValue& inputValue)
+{
+	auto pos = inputValue.get<Vec2>();
+	mContext.pickInfo.currentSelectedPaint = nullptr;
+	bool isPick = Pick(rCanvas->getCanvas(), mContext.pickInfo, pos);
+	if (isPick && mContext.pickInfo.currentSelectedPaint && mContext.pickInfo.currentSelectedScene)
+	{
+		if (mContext.bbox)
+		{
+			auto targetId = mContext.pickInfo.currentSelectedPaint->id;
+			auto targetEntity = mContext.pickInfo.currentSelectedScene->getEntityById(targetId);
+			mContext.bbox->retarget(targetEntity);
+			mContext.pickInfo.excludeIds.insert(targetId);
+			return true;
+		}
+	}
+	else if (mContext.bbox)
+	{
+		mContext.bbox->retarget(Entity());
+		mContext.pickInfo.currentSelectedPaint = nullptr;
+		mContext.pickInfo.currentSelectedScene = nullptr;
+		mContext.pickInfo.excludeIds.clear();
+	}
+
+	return false;
+}
+
 bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 {
 	mContext.isLeftMouseDown = true;
@@ -63,9 +90,10 @@ bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 		if (mContext.bbox && size.x > sp.x && size.y > sp.y && sp.x > 0 && sp.y > 0)
 		{
 			mContext.bbox->retarget(Entity());
+			mContext.pickInfo.currentSelectedPaint = nullptr;
+			mContext.pickInfo.currentSelectedScene = nullptr;
+			mContext.pickInfo.excludeIds.clear();
 		}
-		mContext.pickInfo.currentSelectedPaint = nullptr;
-		mContext.pickInfo.currentSelectedScene = nullptr;
 	}
 	return true;
 }

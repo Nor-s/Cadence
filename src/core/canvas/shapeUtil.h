@@ -77,10 +77,14 @@ static bool Pick(PickInfo& pickInfo, const Vec2& point, tvg::Paint* paint, int d
 				for (auto* p : rawScene->paints())
 				{
 					isPicked |= Pick(pickInfo, point, p, depth + 1);
+					if (isPicked)
+						return true;
 				}
 				return isCurrentSelected || isPicked;
 			}
 		}
+		if (isCurrentSelected)
+			return false;
 		pickInfo.currentSelectedPaint = paint;
 		return true;
 	}

@@ -7,13 +7,17 @@ class InputEventHandler
 {
 	struct State
 	{
+		float clickTimer{0.0f};
+		int clickCount{0};
 		bool leftMouseDown{false};
 		core::Vec2 mousePos{};
 		void init()
 		{
 			leftMouseDown = false;
+			clickCount = 0;
 		}
 	};
+	inline static float Threshold_doubleClickTime = 0.1f;
 
 public:
 	void setInputContoller(core::InputController* inputController);
