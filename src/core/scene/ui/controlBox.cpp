@@ -107,7 +107,7 @@ UIShape::~UIShape()
 void UIShape::moveTo(const Vec2& xy)
 {
 	auto& transform = mEntity.getComponent<TransformComponent>();
-	transform.localCenterPosition = xy;
+	transform.localPosition = xy;
 	mEntity.update();
 
 	auto& shape = mEntity.getComponent<ShapeComponent>();

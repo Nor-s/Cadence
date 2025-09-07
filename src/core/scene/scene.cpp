@@ -82,7 +82,7 @@ Entity Scene::createEllipseFillLayer(Vec2 minXy, Vec2 wh)
 	auto& shape = entity.addComponent<ShapeComponent>();
 	entity.addComponent<SolidFillComponent>();
 
-	transform.localCenterPosition = minXy + wh * 0.5f;
+	transform.localPosition = minXy + wh * 0.5f;
 	transform.anchorPoint = {0.0f, 0.0f};
 	rect.scale = wh;
 	rect.position = {0.0f, 0.0f};
@@ -115,7 +115,7 @@ Entity Scene::createRectFillLayer(Vec2 minXy, Vec2 wh)
 	auto& shape = entity.addComponent<ShapeComponent>();
 	entity.addComponent<SolidFillComponent>();
 
-	transform.localCenterPosition = minXy + wh * 0.5f;
+	transform.localPosition = minXy + wh * 0.5f;
 	transform.anchorPoint = {0.0f, 0.0f};
 	rect.scale = wh;
 	rect.radius = 0.0f;
@@ -154,7 +154,7 @@ Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 	polygon.outerRadius = radius;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localCenterPosition = polygon.path.center = minXy + wh * 0.5f;
+	transform.localPosition = polygon.path.center = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
@@ -194,7 +194,7 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	star.innerRadius = radius / 2.0f;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	star.path.center = transform.localCenterPosition = minXy + wh * 0.5f;
+	star.path.center = transform.localPosition = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
@@ -221,11 +221,11 @@ Entity Scene::createPathLayer(PathPoints path)
 	stroke.width = CommonSetting::Width_DefaultPathLine;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localCenterPosition = path[0].localPosition;
+	transform.localPosition = path[0].localPosition;
 
 	for (auto& point : path)
 	{
-		point.localPosition = point.localPosition - transform.localCenterPosition;
+		point.localPosition = point.localPosition - transform.localPosition;
 	}
 
 	shape.shape = tvg::Shape::gen();
@@ -233,7 +233,7 @@ Entity Scene::createPathLayer(PathPoints path)
 	shape.shape->id = id.id;
 
 	pathComponent.path = path;
-	pathComponent.center = transform.localCenterPosition;
+	pathComponent.center = transform.localPosition;
 
 	entity.update();
 	mTvgScene->push(shape.shape);
@@ -260,9 +260,9 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 	auto height = maxy - miny;
 
 	transform.anchorPoint = {0.0f, 0.0f};	 // oring of the local, center of the bbox
-	transform.localCenterPosition = {minx + width * 0.5f, miny + height * 0.5f};
+	transform.localPosition = {minx + width * 0.5f, miny + height * 0.5f};
 
-	auto centerp = transform.localCenterPosition;
+	auto centerp = transform.localPosition;
 	path.path.resize(5);
 	path.path[0].type = PathPoint::Command::MoveTo;
 	path.path[1].type = PathPoint::Command::LineTo;
@@ -339,7 +339,7 @@ void Scene::onUpdate()
 				[keyframeNo](auto entity, TransformComponent& transform, TransformKeyframeComponent& keyframes)
 				{
 					if (keyframes.positionKeyframes.isEnable)
-						transform.localCenterPosition = keyframes.positionKeyframes.frame(keyframeNo);
+						transform.localPosition = keyframes.positionKeyframes.frame(keyframeNo);
 					if (keyframes.scaleKeyframes.isEnable)
 						transform.scale = keyframes.scaleKeyframes.frame(keyframeNo);
 					if (keyframes.rotationKeyframes.isEnable)

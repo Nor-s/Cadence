@@ -231,8 +231,8 @@ EDIT_API Edit_Result UpdateEntityDeltaPositionCurrentFrame(ENTITY_ID id, float x
 		auto& trk = entity.getComponent<TransformKeyframeComponent>();
 		auto& tr = entity.getComponent<TransformComponent>();
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
-		trk.positionKeyframes.add(frameNo, tr.localCenterPosition);
-		trk.positionKeyframes.currentValue = tr.localCenterPosition;
+		trk.positionKeyframes.add(frameNo, tr.localPosition);
+		trk.positionKeyframes.currentValue = tr.localPosition;
 	}
 
 	return EDIT_RESULT_SUCCESS;

@@ -178,7 +178,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 		if (ImGui::CollapsingHeader("Transform"))
 		{
 			auto& transform = entity.getComponent<core::TransformComponent>();
-			auto position = transform.localCenterPosition;
+			auto position = transform.localPosition;
 			ImGui::Helper::DragFPropertyXYZ("Position:", position.value, 0.001f, -1000.0f, 1000.0f, "%.3f", "Position",
 											2);
 

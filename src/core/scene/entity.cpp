@@ -19,7 +19,7 @@ Entity::Entity(Scene* scene)
 void Entity::moveByDelta(const Vec2& delta)
 {
 	auto& transform = getComponent<TransformComponent>();
-	transform.localCenterPosition = transform.localCenterPosition + delta;
+	transform.localPosition = transform.localPosition + delta;
 }
 void Entity::hide()
 {

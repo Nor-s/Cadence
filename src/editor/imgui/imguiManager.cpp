@@ -96,27 +96,27 @@ void ImGuiManager::drawDocMenuBar()
 			}
 			ImGui::EndMenu();
 		}
-		if (ImGui::BeginMenu("Edit"))
-		{
-			ImGui::MenuItem("(TODO)Undo", "Ctrl+Z");
-			ImGui::MenuItem("(TODO)Redo", "Ctrl+Y");
-			ImGui::Separator();
-			ImGui::MenuItem("(TODO)Cut", "Ctrl+X");
-			ImGui::MenuItem("(TODO)Copy", "Ctrl+C");
-			ImGui::MenuItem("(TODO)Paste", "Ctrl+V");
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Window"))
-		{
-			ImGui::MenuItem("(TODO)Reset Layout");
-			ImGui::MenuItem("(TODO)Toggle Docking");
-			ImGui::EndMenu();
-		}
-		if (ImGui::BeginMenu("Help"))
-		{
-			ImGui::MenuItem("(TODO)About");
-			ImGui::EndMenu();
-		}
+		// if (ImGui::BeginMenu("Edit"))
+		//{
+		//	ImGui::MenuItem("(TODO)Undo", "Ctrl+Z");
+		//	ImGui::MenuItem("(TODO)Redo", "Ctrl+Y");
+		//	ImGui::Separator();
+		//	ImGui::MenuItem("(TODO)Cut", "Ctrl+X");
+		//	ImGui::MenuItem("(TODO)Copy", "Ctrl+C");
+		//	ImGui::MenuItem("(TODO)Paste", "Ctrl+V");
+		//	ImGui::EndMenu();
+		// }
+		// if (ImGui::BeginMenu("Window"))
+		//{
+		//	ImGui::MenuItem("(TODO)Reset Layout");
+		//	ImGui::MenuItem("(TODO)Toggle Docking");
+		//	ImGui::EndMenu();
+		// }
+		// if (ImGui::BeginMenu("Help"))
+		//{
+		//	ImGui::MenuItem("(TODO)About");
+		//	ImGui::EndMenu();
+		// }
 
 		ImGui::Text("    | ");
 		ImGui::SameLine();
@@ -124,8 +124,12 @@ void ImGuiManager::drawDocMenuBar()
 		enum class ModeType
 		{
 			Normal,
-			Pen,
-			Script
+			Focus,
+			Rig,
+			State,
+			Physics,
+			Script,
+			AI,
 		};
 		static ModeType currentMode = ModeType::Normal;
 
@@ -163,9 +167,17 @@ void ImGuiManager::drawDocMenuBar()
 		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, {0.0f, 0.0f});
 		RadioButtonLike("Normal", ModeType::Normal);
 		// ImGui::SameLine();
-		// RadioButtonLike("Pen", ModeType::Pen);
-		ImGui::SameLine();
-		RadioButtonLike("Script", ModeType::Script);
+		// RadioButtonLike("Focus", ModeType::Focus);
+		// ImGui::SameLine();
+		// RadioButtonLike("Rig", ModeType::Rig);
+		// ImGui::SameLine();
+		// RadioButtonLike("State", ModeType::State);
+		// ImGui::SameLine();
+		// RadioButtonLike("Physics", ModeType::Physics);
+		// ImGui::SameLine();
+		// RadioButtonLike("Script", ModeType::Script);
+		// ImGui::SameLine();
+		// RadioButtonLike("AI", ModeType::AI);
 		ImGui::PopStyleVar(1);
 
 		ImGuiIO& io = ImGui::GetIO();

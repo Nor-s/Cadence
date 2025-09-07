@@ -192,9 +192,9 @@ struct StarPolygonPathComponent
 
 struct TransformComponent
 {
-	Vec2 anchorPoint{0.0f, 0.0f};			 // local anchor
-	Vec2 worldPosition{0.0f, 0.0f};			 // world position
-	Vec2 localCenterPosition{0.0f, 0.0f};	 // center of layer
+	Vec2 anchorPoint{0.0f, 0.0f};	   // local anchor
+	Vec2 worldPosition{0.0f, 0.0f};	   // world position
+	Vec2 localPosition{0.0f, 0.0f};	   // center of layer
 	Vec2 scale{1.0f, 1.0f};
 	float rotation{};
 
@@ -208,11 +208,11 @@ struct TransformComponent
 		localTransform = identity();
 		inverseWorldTransform = identity();
 
-		applyTranslate(&localTransform, localCenterPosition);
+		applyTranslate(&localTransform, localPosition);
 		applyRotateR(&localTransform, rotation);
 		applyScaleR(&localTransform, scale);
 		applyTranslateR(&localTransform, anchorPoint * -1.0f);
-		worldPosition = localCenterPosition + anchorPoint;
+		worldPosition = localPosition + anchorPoint;
 
 		worldTransform = localTransform;	// todo: parent
 		inverse(&worldTransform, &inverseWorldTransform);
@@ -495,11 +495,34 @@ static bool UpdateShape(Entity& entity, ShapeComponent& shape)
 	return false;
 }
 
+static void Resolve(TransformComponent& transform, PathComponent& path)
+{
+	Vec2 center{0.0f, 0.0f};
+	float count = 0;
+	for (auto& point : path.path)
+	{
+		if (point.type != PathPoint::Command::Close)
+		{
+			center = center + point.localPosition;
+			count += 1.0f;
+		}
+	}
+
+	center = center / count;
+	transform.localPosition = transform.localPosition + center;
+
+	for (auto& point : path.path)
+	{
+		point.localPosition = point.localPosition - center;
+	}
+}
+
 static bool Remove(ShapeComponent& shape, SolidFillComponent& fill)
 {
 	shape.shape->fill(0, 0, 0, 0);
 	return true;
 }
+
 static bool Remove(ShapeComponent& shape, StrokeComponent& stroke)
 {
 	shape.shape->strokeWidth(0.0f);

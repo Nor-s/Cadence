@@ -60,6 +60,8 @@ bool AddPathMode::onEndLeftMouse(const InputValue& inputValue)
 
 	if (mEditPath->onEndLeftMouse(inputValue))
 	{
+		// mTargetPath is Delete when Change Edit Mode
+		Resolve(mTargetPath.getComponent<TransformComponent>(), mTargetPath.getComponent<PathComponent>());
 		mTargetPath = Entity();
 		return true;
 	}
