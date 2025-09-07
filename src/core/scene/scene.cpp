@@ -325,46 +325,20 @@ void Scene::onUpdate()
 
 	mRegistry.view<BBoxControlComponent>().each([](auto entity, BBoxControlComponent& bbox) { bbox.bbox->onUpdate(); });
 
-	if (canvasPtr)
+	auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvasPtr);
+	auto* animator = animCanvas->mAnimator.get();
+	const auto keyframeNo = animator->mCurrentFrameNo;
 	{
-		auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvasPtr);
-		auto* animator = animCanvas->mAnimator.get();
-
-		// todo: keyframe update logic here, mIsStop == true
-		if (!animator->mIsStop || animator->mDirty)
-		{
-			const auto keyframeNo = animator->mCurrentFrameNo;
-			// todo: other keyframe
-			mRegistry.view<TransformComponent, TransformKeyframeComponent>().each(
-				[keyframeNo](auto entity, TransformComponent& transform, TransformKeyframeComponent& keyframes)
-				{
-					if (keyframes.positionKeyframes.isEnable)
-						transform.localPosition = keyframes.positionKeyframes.frame(keyframeNo);
-					if (keyframes.scaleKeyframes.isEnable)
-						transform.scale = keyframes.scaleKeyframes.frame(keyframeNo);
-					if (keyframes.rotationKeyframes.isEnable)
-						transform.rotation = keyframes.rotationKeyframes.frame(keyframeNo);
-				});
-			mRegistry.view<SolidFillComponent>().each(
-				[keyframeNo](auto entity, SolidFillComponent& component)
-				{
-					if (component.colorKeyframe.isEnable)
-						component.color = component.colorKeyframe.frame(keyframeNo);
-					if (component.alphaKeyframe.isEnable)
-						component.alpha = component.alphaKeyframe.frame(keyframeNo);
-				});
-			mRegistry.view<StrokeComponent>().each(
-				[keyframeNo](auto entity, StrokeComponent& component)
-				{
-					if (component.colorKeyframe.isEnable)
-						component.color = component.colorKeyframe.frame(keyframeNo);
-					if (component.alphaKeyframe.isEnable)
-						component.alpha = component.alphaKeyframe.frame(keyframeNo);
-					if (component.widthKeyframe.isEnable)
-						component.width = component.widthKeyframe.frame(keyframeNo);
-				});
-			animator->mDirty = false;
-		}
+		mRegistry.view<TransformComponent, TransformKeyframeComponent>().each(
+			[keyframeNo](auto entity, TransformComponent& transform, TransformKeyframeComponent& keyframes)
+			{
+				if (keyframes.positionKeyframes.isEnable)
+					transform.localPosition = keyframes.positionKeyframes.frame(keyframeNo);
+				if (keyframes.scaleKeyframes.isEnable)
+					transform.scale = keyframes.scaleKeyframes.frame(keyframeNo);
+				if (keyframes.rotationKeyframes.isEnable)
+					transform.rotation = keyframes.rotationKeyframes.frame(keyframeNo);
+			});
 	}
 
 	mRegistry.view<TransformComponent, PathComponent, ShapeComponent>().each(
@@ -374,34 +348,46 @@ void Scene::onUpdate()
 			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, ElipsePathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, ElipsePathComponent& path, ShapeComponent& shape)
+		[keyframeNo](auto entity, TransformComponent& transform, ElipsePathComponent& path, ShapeComponent& shape)
 		{
+			path.update(keyframeNo);
 			Update(shape, transform);
 			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, RectPathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, RectPathComponent& path, ShapeComponent& shape)
+		[keyframeNo](auto entity, TransformComponent& transform, RectPathComponent& path, ShapeComponent& shape)
 		{
+			path.update(keyframeNo);
 			Update(shape, transform);
 			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, StarPolygonPathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, StarPolygonPathComponent& path, ShapeComponent& shape)
+		[keyframeNo](auto entity, TransformComponent& transform, StarPolygonPathComponent& path, ShapeComponent& shape)
 		{
+			path.update(keyframeNo);
 			Update(shape, transform);
 			Update(shape, path);
 		});
 	mRegistry.view<TransformComponent, PolygonPathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, PolygonPathComponent& path, ShapeComponent& shape)
+		[keyframeNo](auto entity, TransformComponent& transform, PolygonPathComponent& path, ShapeComponent& shape)
 		{
+			path.update(keyframeNo);
 			Update(shape, transform);
 			Update(shape, path);
 		});
 
 	mRegistry.view<ShapeComponent, SolidFillComponent>().each(
-		[](auto entity, ShapeComponent& shape, SolidFillComponent& fill) { Update(shape, fill); });
+		[keyframeNo](auto entity, ShapeComponent& shape, SolidFillComponent& fill)
+		{
+			fill.update(keyframeNo);
+			Update(shape, fill);
+		});
 	mRegistry.view<ShapeComponent, StrokeComponent>().each(
-		[](auto entity, ShapeComponent& shape, StrokeComponent& stroke) { Update(shape, stroke); });
+		[keyframeNo](auto entity, ShapeComponent& shape, StrokeComponent& stroke)
+		{
+			stroke.update(keyframeNo);
+			Update(shape, stroke);
+		});
 
 	mRegistry.view<SceneComponent>().each(
 		[this](auto entity, SceneComponent& scene)

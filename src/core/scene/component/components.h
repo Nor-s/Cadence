@@ -62,7 +62,6 @@ struct Keyframes
 	};
 	bool isEnable{false};
 	std::vector<Keyframe> frames;
-	T currentValue{};
 
 	auto begin()
 	{
@@ -96,9 +95,12 @@ struct Keyframes
 	T frame(float frameNo)
 	{
 		if (!isEnable || frames.empty())
-			return currentValue;
+		{
+			assert(false);
+			return T{};
+		}
 		if (frames.size() == 1)
-			return currentValue = frames[0].value;
+			return frames[0].value;
 
 		auto it = std::lower_bound(frames.begin(), frames.end(), frameNo,
 								   [](const Keyframe& k, float f) { return k.frame < f; });
@@ -119,7 +121,7 @@ struct Keyframes
 		assert(t >= 0.0f && t <= 1.0f);
 
 		// todo: curve
-		return currentValue = lerp(lo.value, hi.value, t);
+		return lerp(lo.value, hi.value, t);
 	}
 };
 
@@ -139,17 +141,37 @@ struct RectPathComponent
 	float radius{0.0};
 	Vec2 position{0.0f, 0.0f};
 	Vec2 scale{100.0f, 100.0f};
+
 	FloatKeyFrame radiusKeyframes;
 	VectorKeyFrame positionKeyframes;
 	VectorKeyFrame scaleKeyframes;
+
+	void update(float frameNo)
+	{
+		if (radiusKeyframes.isEnable)
+			radius = radiusKeyframes.frame(frameNo);
+		if (positionKeyframes.isEnable)
+			position = positionKeyframes.frame(frameNo);
+		if (scaleKeyframes.isEnable)
+			scale = scaleKeyframes.frame(frameNo);
+	}
 };
 
 struct ElipsePathComponent
 {
 	Vec2 position{0.0f, 0.0f};
 	Vec2 scale{100.0f, 100.0f};
+
 	VectorKeyFrame positionKeyframes;
 	VectorKeyFrame scaleKeyframes;
+
+	void update(float frameNo)
+	{
+		if (positionKeyframes.isEnable)
+			position = positionKeyframes.frame(frameNo);
+		if (scaleKeyframes.isEnable)
+			scale = scaleKeyframes.frame(frameNo);
+	}
 };
 
 struct PathComponent
@@ -171,6 +193,18 @@ struct PolygonPathComponent
 	FloatKeyFrame rotationKeyframes;
 	FloatKeyFrame outerRadiusKeyframes;
 	VectorKeyFrame positionKeyframes;
+
+	void update(float frameNo)
+	{
+		if (pointsKeyframes.isEnable)
+			points = pointsKeyframes.frame(frameNo);
+		if (rotationKeyframes.isEnable)
+			rotation = rotationKeyframes.frame(frameNo);
+		if (outerRadiusKeyframes.isEnable)
+			outerRadius = outerRadiusKeyframes.frame(frameNo);
+		if (positionKeyframes.isEnable)
+			position = positionKeyframes.frame(frameNo);
+	}
 };
 
 struct StarPolygonPathComponent
@@ -188,6 +222,20 @@ struct StarPolygonPathComponent
 	FloatKeyFrame outerRadiusKeyframes;
 	FloatKeyFrame innerRadiusKeyframes;
 	VectorKeyFrame positionKeyframes;
+
+	void update(float frameNo)
+	{
+		if (pointsKeyframes.isEnable)
+			points = pointsKeyframes.frame(frameNo);
+		if (rotationKeyframes.isEnable)
+			rotation = rotationKeyframes.frame(frameNo);
+		if (outerRadiusKeyframes.isEnable)
+			outerRadius = outerRadiusKeyframes.frame(frameNo);
+		if (innerRadiusKeyframes.isEnable)
+			innerRadius = innerRadiusKeyframes.frame(frameNo);
+		if (positionKeyframes.isEnable)
+			position = positionKeyframes.frame(frameNo);
+	}
 };
 
 struct TransformComponent
@@ -323,8 +371,17 @@ struct SolidFillComponent
 	Vec3 color = CommonSetting::Color_DefaultFill;
 	float alpha{255.0f};
 	tvg::FillRule rule{tvg::FillRule::NonZero};
+
 	ColorKeyFrame colorKeyframe;
 	FloatKeyFrame alphaKeyframe;
+
+	void update(float frameNo)
+	{
+		if (colorKeyframe.isEnable)
+			color = colorKeyframe.frame(frameNo);
+		if (alphaKeyframe.isEnable)
+			alpha = alphaKeyframe.frame(frameNo);
+	}
 };
 
 struct StrokeComponent
@@ -332,10 +389,21 @@ struct StrokeComponent
 	Vec3 color = CommonSetting::Color_DefaultStroke;
 	float alpha{255.0f};
 	float width{1.5f};
+
 	// tvg::StrokeJoin join;
 	ColorKeyFrame colorKeyframe;
 	FloatKeyFrame widthKeyframe;
 	FloatKeyFrame alphaKeyframe;
+
+	void update(float frameno)
+	{
+		if (colorKeyframe.isEnable)
+			color = colorKeyframe.frame(frameno);
+		if (alphaKeyframe.isEnable)
+			alpha = alphaKeyframe.frame(frameno);
+		if (widthKeyframe.isEnable)
+			width = widthKeyframe.frame(frameno);
+	}
 };
 
 }	 // namespace core

@@ -150,7 +150,6 @@ EDIT_API Edit_Result UpdateEntityScaleCurrentFrame(ENTITY_ID id, float x, float 
 		auto& trk = entity.getComponent<TransformKeyframeComponent>();
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		trk.scaleKeyframes.add(frameNo, tr.scale);
-		trk.scaleKeyframes.currentValue = tr.scale;
 	}
 
 	return EDIT_RESULT_SUCCESS;
@@ -171,7 +170,6 @@ EDIT_API Edit_Result UpdateEntityDeltaRotationCurrentFrame(ENTITY_ID id, float x
 		auto& trk = entity.getComponent<TransformKeyframeComponent>();
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		trk.rotationKeyframes.add(frameNo, tr.rotation);
-		trk.rotationKeyframes.currentValue = tr.rotation;
 	}
 
 	return EDIT_RESULT_SUCCESS;
@@ -232,7 +230,6 @@ EDIT_API Edit_Result UpdateEntityDeltaPositionCurrentFrame(ENTITY_ID id, float x
 		auto& tr = entity.getComponent<TransformComponent>();
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		trk.positionKeyframes.add(frameNo, tr.localPosition);
-		trk.positionKeyframes.currentValue = tr.localPosition;
 	}
 
 	return EDIT_RESULT_SUCCESS;
@@ -253,7 +250,6 @@ EDIT_API Edit_Result UpdateEntitySolidFillColorCurrentFrame(ENTITY_ID id, float 
 	{
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		solidFill.colorKeyframe.add(frameNo, solidFill.color);
-		solidFill.colorKeyframe.currentValue = solidFill.color;
 	}
 }
 
@@ -270,7 +266,6 @@ EDIT_API Edit_Result UpdateEntitySolidFillAlphaCurrentFrame(ENTITY_ID id, float 
 	{
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		solidFill.alphaKeyframe.add(frameNo, solidFill.alpha);
-		solidFill.alphaKeyframe.currentValue = solidFill.alpha;
 	}
 }
 
@@ -287,7 +282,6 @@ EDIT_API Edit_Result UpdateEntityStrokeWidthCurrentFrame(ENTITY_ID id, float w, 
 	{
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		stroke.widthKeyframe.add(frameNo, stroke.width);
-		stroke.widthKeyframe.currentValue = stroke.width;
 	}
 }
 EDIT_API Edit_Result UpdateEntityStrokeColorCurrentFrame(ENTITY_ID id, float r, float g, float b, bool isEnd)
@@ -305,7 +299,6 @@ EDIT_API Edit_Result UpdateEntityStrokeColorCurrentFrame(ENTITY_ID id, float r, 
 	{
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		stroke.colorKeyframe.add(frameNo, stroke.color);
-		stroke.colorKeyframe.currentValue = stroke.color;
 	}
 }
 EDIT_API Edit_Result UpdateEntityStrokeAlphaCurrentFrame(ENTITY_ID id, float a, bool isEnd)
@@ -321,7 +314,6 @@ EDIT_API Edit_Result UpdateEntityStrokeAlphaCurrentFrame(ENTITY_ID id, float a, 
 	{
 		const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
 		stroke.alphaKeyframe.add(frameNo, stroke.alpha);
-		stroke.alphaKeyframe.currentValue = stroke.alpha;
 	}
 }
 
