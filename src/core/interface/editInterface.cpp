@@ -177,6 +177,46 @@ EDIT_API Edit_Result UpdateEntityDeltaRotationCurrentFrame(ENTITY_ID id, float x
 	return EDIT_RESULT_SUCCESS;
 }
 
+EDIT_API Edit_Result RemoveFillComponent(ENTITY_ID id)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.tryRemoveComponent<SolidFillComponent>())
+	{
+		return EDIT_RESULT_SUCCESS;
+	}
+	return EDIT_RESULT_FAIL;
+}
+
+EDIT_API Edit_Result RemoveStrokeComponent(ENTITY_ID id)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.tryRemoveComponent<StrokeComponent>())
+	{
+		return EDIT_RESULT_SUCCESS;
+	}
+	return EDIT_RESULT_FAIL;
+}
+
+EDIT_API Edit_Result AddFillComponent(ENTITY_ID id)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.tryAddComponent<SolidFillComponent>())
+	{
+		return EDIT_RESULT_SUCCESS;
+	}
+	return EDIT_RESULT_FAIL;
+}
+
+EDIT_API Edit_Result AddStrokeComponent(ENTITY_ID id)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.tryAddComponent<StrokeComponent>())
+	{
+		return EDIT_RESULT_SUCCESS;
+	}
+	return EDIT_RESULT_FAIL;
+}
+
 EDIT_API Edit_Result UpdateEntityDeltaPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
 {
 	auto entity = Scene::FindEntity(id);

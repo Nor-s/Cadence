@@ -134,14 +134,9 @@ void ImGuiManager::drawDocMenuBar()
 			bool selected = (currentMode == value);
 
 			ImGuiStyle& style = ImGui::GetStyle();
-			ImVec4 colBtn = style.Colors[ImGuiCol_Button];
 			ImVec4 colHover = style.Colors[ImGuiCol_ButtonHovered];
-			ImVec4 colActive{};
-			colBtn.w = 0.0f;
-			colActive.x = 0.5f;
-			colActive.y = 0.2f;
-			colActive.z = 0.1f;
-			colActive.w = 1.0f;
+			ImVec4 colBtn = ImVec4(0.0f, 0.0f, 0.0f, 0.0f);
+			ImVec4 colActive = ImVec4(0.5f, 0.2f, 0.1f, 1.0f);
 
 			if (selected)
 			{

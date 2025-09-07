@@ -31,4 +31,27 @@ void Entity::removeComponent()
 	rScene->mRegistry.remove<T>(mHandle);
 }
 
+template <typename T>
+bool Entity::tryRemoveComponent()
+{
+	if (hasComponent<T>())
+	{
+		RemoveShape<T>(*this);
+		removeComponent<T>();
+		return true;
+	}
+	return false;
+}
+
+template <typename T, typename... Args>
+bool Entity::tryAddComponent(Args&&... args)
+{
+	if (!hasComponent<T>())
+	{
+		addComponent<T>(std::forward<Args>(args)...);
+		return true;
+	}
+	return false;
+}
+
 }	 // namespace core

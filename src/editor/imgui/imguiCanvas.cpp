@@ -195,7 +195,14 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 	{
 		if (ImGui::CollapsingHeader("Fill"))
 		{
-			if (entity.hasComponent<core::SolidFillComponent>())
+			if (!entity.hasComponent<core::SolidFillComponent>())
+			{
+				if (ImGui::Button("+ Fill"))
+				{
+					AddFillComponent(entity.getId());
+				}
+			}
+			else
 			{
 				static bool isSFColorEdit = false;
 				bool isBeforeColorEdit = isSFColorEdit;
@@ -222,6 +229,11 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 					alpha = alpha * 255.0f;
 					UpdateEntitySolidFillAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSFAlphaEdit);
 				}
+
+				if (ImGui::Button("- Fill"))
+				{
+					RemoveFillComponent(entity.getId());
+				}
 			}
 		}
 		ImGui::Separator();
@@ -233,10 +245,9 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 		{
 			if (!entity.hasComponent<core::StrokeComponent>())
 			{
-				if (ImGui::Button("Add StrokeComponent"))
+				if (ImGui::Button("+ Stroke"))
 				{
-					// todo add component API
-					entity.addComponent<core::StrokeComponent>();
+					AddStrokeComponent(entity.getId());
 				}
 			}
 			else
@@ -278,6 +289,11 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				{
 					alpha = alpha * 255.0f;
 					UpdateEntityStrokeAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSAlphaEdit);
+				}
+
+				if (ImGui::Button("- Stroke"))
+				{
+					RemoveStrokeComponent(entity.getId());
 				}
 			}
 		}

@@ -52,6 +52,12 @@ public:
 	template <typename T>
 	void removeComponent();
 
+	template <typename T>
+	bool tryRemoveComponent();
+
+	template <typename T, typename... Args>
+	bool tryAddComponent(Args&&... args);
+
 	const EntityID getId();
 	const bool isNull() const;
 

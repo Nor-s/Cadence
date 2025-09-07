@@ -495,6 +495,28 @@ static bool UpdateShape(Entity& entity, ShapeComponent& shape)
 	return false;
 }
 
+static bool Remove(ShapeComponent& shape, SolidFillComponent& fill)
+{
+	shape.shape->fill(0, 0, 0, 0);
+	return true;
+}
+static bool Remove(ShapeComponent& shape, StrokeComponent& stroke)
+{
+	shape.shape->strokeWidth(0.0f);
+	shape.shape->strokeFill(0, 0, 0, 0);
+	return true;
+}
+
+template <typename TComponent>
+static bool RemoveShape(Entity& entity)
+{
+	if (entity.hasComponent<TComponent>() && entity.hasComponent<ShapeComponent>())
+	{
+		return Remove(entity.getComponent<ShapeComponent>(), entity.getComponent<TComponent>());
+	}
+	return false;
+}
+
 }	 // namespace core
 
 #endif
