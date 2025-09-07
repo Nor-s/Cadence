@@ -27,7 +27,7 @@ public:
 		core::Size resolution;
 		std::string title;
 		bool running = true;
-		AppState() : resolution(1280, 720), title("thorvg.sandbox")
+		AppState() : resolution(1280, 720), title("Cadence")
 		{
 		}
 	};
