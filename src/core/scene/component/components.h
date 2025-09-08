@@ -135,7 +135,17 @@ struct SceneComponent
 	Scene* scene{nullptr};
 };
 
+struct IPathComponent
+{
+};
+
+struct PathsComponent
+{
+	std::vector<IPathComponent> paths;
+};
+
 // shape
+// todo: array PathComponent
 struct RectPathComponent
 {
 	float radius{0.0};
@@ -534,6 +544,8 @@ static void Update(ShapeComponent& shape, RectPathComponent& path)
 	const float x = path.position.x - path.scale.x * 0.5f;
 	const float y = path.position.y - path.scale.y * 0.5f;
 	shape.shape->appendRect(x, y, path.scale.x, path.scale.y, path.radius, path.radius);
+	shape.shape->strokeJoin(tvg::StrokeJoin::Round);
+	shape.shape->strokeCap(tvg::StrokeCap::Round);
 }
 // shape.shape->reset();
 
