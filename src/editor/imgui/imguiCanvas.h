@@ -7,7 +7,7 @@ namespace core
 {
 class CanvasWrapper;
 class Entity;
-}
+}	 // namespace core
 
 namespace editor
 {
@@ -19,10 +19,16 @@ public:
 	void onDraw(std::string_view title, core::CanvasWrapper& canvas, int canvasIndex);
 	void onDrawSceneInspect();
 	void onDrawContentBrowser();
-private: 
+
+private:
 	void drawExampleCanvasContent();
 	void drawAnimationCanvasProperties();
+
 	void drawComponent(core::Entity& entity);
+	void drawRectComponent(core::Entity& entity);
+	void drawElipseComponent(core::Entity& entity);
+	void drawPolygonComponent(core::Entity& entity);
+	void drawStarPolygonComponent(core::Entity& entity);
 };
 
 }	 // namespace editor

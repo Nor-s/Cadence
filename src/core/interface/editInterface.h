@@ -60,6 +60,32 @@ extern "C"
 	EDIT_API Edit_Result AddFillComponent(ENTITY_ID id);
 	EDIT_API Edit_Result AddStrokeComponent(ENTITY_ID id);
 
+	// Rect
+	EDIT_API Edit_Result UpdateEntityRectPathRadiusCurrentFrame(ENTITY_ID id, float radius, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityRectPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityRectPathScaleCurrentFrame(ENTITY_ID id, float sx, float sy, bool isEnd);
+
+	// Elipse
+	EDIT_API Edit_Result UpdateEntityElipsePathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityElipsePathScaleCurrentFrame(ENTITY_ID id, float sx, float sy, bool isEnd);
+
+	// Polygon
+	EDIT_API Edit_Result UpdateEntityPolygonPathPointsCurrentFrame(ENTITY_ID id, int points, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityPolygonPathRotationCurrentFrame(ENTITY_ID id, float rotation, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityPolygonPathOuterRadiusCurrentFrame(ENTITY_ID id, float outerRadius, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityPolygonPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
+
+	// StarPolygon
+	EDIT_API Edit_Result UpdateEntityStarPolygonPathPointsCurrentFrame(ENTITY_ID id, int points, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityStarPolygonPathRotationCurrentFrame(ENTITY_ID id, float rotation, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityStarPolygonPathOuterRadiusCurrentFrame(ENTITY_ID id,
+																			float outerRadius,
+																			bool isEnd);
+	EDIT_API Edit_Result UpdateEntityStarPolygonPathInnerRadiusCurrentFrame(ENTITY_ID id,
+																			float innerRadius,
+																			bool isEnd);
+	EDIT_API Edit_Result UpdateEntityStarPolygonPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
+
 	// solid fill
 	EDIT_API Edit_Result UpdateEntitySolidFillColorCurrentFrame(ENTITY_ID id, float r, float g, float b, bool isEnd);
 	EDIT_API Edit_Result UpdateEntitySolidFillAlphaCurrentFrame(ENTITY_ID id, float a, bool isEnd);

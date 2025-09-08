@@ -215,6 +215,224 @@ EDIT_API Edit_Result AddStrokeComponent(ENTITY_ID id)
 	return EDIT_RESULT_FAIL;
 }
 
+static inline int CurrentFrameNo()
+{
+	return (gCurrentAnimCanvas && gCurrentAnimCanvas->mAnimator) ? gCurrentAnimCanvas->mAnimator->mCurrentFrameNo : 0;
+}
+static inline bool IsPlaybackStopped()
+{
+	return (gCurrentAnimCanvas && gCurrentAnimCanvas->mAnimator) ? gCurrentAnimCanvas->mAnimator->mIsStop : true;
+}
+EDIT_API Edit_Result UpdateEntityRectPathRadiusCurrentFrame(ENTITY_ID id, float radius, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<RectPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<RectPathComponent>();
+	c.radius = radius;
+
+	if (IsPlaybackStopped())
+		c.radiusKeyframes.add(CurrentFrameNo(), c.radius);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityRectPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<RectPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<RectPathComponent>();
+	c.position = {x, y};
+
+	if (IsPlaybackStopped())
+		c.positionKeyframes.add(CurrentFrameNo(), c.position);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityRectPathScaleCurrentFrame(ENTITY_ID id, float sx, float sy, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<RectPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<RectPathComponent>();
+	c.scale = {sx, sy};
+
+	if (IsPlaybackStopped())
+		c.scaleKeyframes.add(CurrentFrameNo(), c.scale);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityElipsePathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<ElipsePathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<ElipsePathComponent>();
+	c.position = {x, y};
+
+	if (IsPlaybackStopped())
+		c.positionKeyframes.add(CurrentFrameNo(), c.position);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityElipsePathScaleCurrentFrame(ENTITY_ID id, float sx, float sy, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<ElipsePathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<ElipsePathComponent>();
+	c.scale = {sx, sy};
+
+	if (IsPlaybackStopped())
+		c.scaleKeyframes.add(CurrentFrameNo(), c.scale);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityPolygonPathPointsCurrentFrame(ENTITY_ID id, int points, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<PolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<PolygonPathComponent>();
+	c.points = points;
+
+	if (IsPlaybackStopped())
+		c.pointsKeyframes.add(CurrentFrameNo(), c.points);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityPolygonPathRotationCurrentFrame(ENTITY_ID id, float rotation, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<PolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<PolygonPathComponent>();
+	c.rotation = rotation;
+
+	if (IsPlaybackStopped())
+		c.rotationKeyframes.add(CurrentFrameNo(), c.rotation);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityPolygonPathOuterRadiusCurrentFrame(ENTITY_ID id, float outerRadius, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<PolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<PolygonPathComponent>();
+	c.outerRadius = outerRadius;
+
+	if (IsPlaybackStopped())
+		c.outerRadiusKeyframes.add(CurrentFrameNo(), c.outerRadius);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityPolygonPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<PolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<PolygonPathComponent>();
+	c.position = {x, y};
+
+	if (IsPlaybackStopped())
+		c.positionKeyframes.add(CurrentFrameNo(), c.position);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityStarPolygonPathPointsCurrentFrame(ENTITY_ID id, int points, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<StarPolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<StarPolygonPathComponent>();
+	c.points = points;
+
+	if (IsPlaybackStopped())
+		c.pointsKeyframes.add(CurrentFrameNo(), c.points);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityStarPolygonPathRotationCurrentFrame(ENTITY_ID id, float rotation, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<StarPolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<StarPolygonPathComponent>();
+	c.rotation = rotation;
+
+	if (IsPlaybackStopped())
+		c.rotationKeyframes.add(CurrentFrameNo(), c.rotation);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityStarPolygonPathOuterRadiusCurrentFrame(ENTITY_ID id, float outerRadius, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<StarPolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<StarPolygonPathComponent>();
+	c.outerRadius = outerRadius;
+
+	if (IsPlaybackStopped())
+		c.outerRadiusKeyframes.add(CurrentFrameNo(), c.outerRadius);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityStarPolygonPathInnerRadiusCurrentFrame(ENTITY_ID id, float innerRadius, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<StarPolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<StarPolygonPathComponent>();
+	c.innerRadius = innerRadius;
+
+	if (IsPlaybackStopped())
+		c.innerRadiusKeyframes.add(CurrentFrameNo(), c.innerRadius);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
+EDIT_API Edit_Result UpdateEntityStarPolygonPathPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
+{
+	auto entity = Scene::FindEntity(id);
+	if (entity.isNull() || !entity.hasComponent<StarPolygonPathComponent>())
+		return EDIT_RESULT_INVALID_ENTITY;
+
+	auto& c = entity.getComponent<StarPolygonPathComponent>();
+	c.position = {x, y};
+
+	if (IsPlaybackStopped())
+		c.positionKeyframes.add(CurrentFrameNo(), c.position);
+
+	return EDIT_RESULT_SUCCESS;
+}
+
 EDIT_API Edit_Result UpdateEntityDeltaPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd)
 {
 	auto entity = Scene::FindEntity(id);
