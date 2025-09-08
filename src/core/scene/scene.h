@@ -60,8 +60,11 @@ public:
 	Entity getEntityById(uint32_t id);
 	Entity tryGetEntityById(uint32_t id);
 
-	void destroyEntity(core::Entity& entity);
+	void destroyEntity(Entity& entity);
 	void pushCanvas(CanvasWrapper* canvas);
+	void reorder();
+
+	void changeDrawOrder(const Entity& entity, ChangeOrderType changeOrderType);
 
 	tvg::Scene* getScene()
 	{
@@ -78,6 +81,7 @@ protected:
 	friend class AnimationCreatorCanvas;
 	entt::registry mRegistry{};
 	std::vector<CanvasWrapper*> rCanvasList;
+	std::vector<Entity> mDrawOrder;
 	tvg::Scene* mTvgScene;
 };
 

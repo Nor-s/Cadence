@@ -173,6 +173,31 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 		return;
 	}
 
+	{
+		if (ImGui::CollapsingHeader("Draw Order"))
+		{
+			// todo: use api
+			if (ImGui::Button("To Forward"))
+			{
+				entity.changeDrawOrder(core::ChangeOrderType::ToForward);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("To Backward"))
+			{
+				entity.changeDrawOrder(core::ChangeOrderType::ToBackward);
+			}
+			if (ImGui::Button("To Front"))
+			{
+				entity.changeDrawOrder(core::ChangeOrderType::ToFront);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("To Back"))
+			{
+				entity.changeDrawOrder(core::ChangeOrderType::ToBack);
+			}
+		}
+	}
+
 	// transform component
 	{
 		if (ImGui::CollapsingHeader("Transform"))

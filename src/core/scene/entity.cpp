@@ -101,4 +101,9 @@ const bool Entity::isNull() const
 	return mHandle == entt::null;
 }
 
+void Entity::changeDrawOrder(ChangeOrderType changeOrderType)
+{
+	rScene->changeDrawOrder(*this, changeOrderType);
+}
+
 }	 // namespace core

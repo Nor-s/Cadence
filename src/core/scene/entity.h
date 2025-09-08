@@ -17,8 +17,16 @@ struct RectPathComponent;
 struct PathComponent;
 struct SolidFillComponent;
 struct StrokeComponent;
-
 class Scene;
+
+enum class ChangeOrderType
+{
+	ToFront,
+	ToBack,
+	ToForward,
+	ToBackward
+};
+
 class Entity
 {
 public:
@@ -60,6 +68,13 @@ public:
 
 	const EntityID getId();
 	const bool isNull() const;
+
+	void changeDrawOrder(ChangeOrderType changeOrderType);
+
+	bool operator==(const Entity& rhs)
+	{
+		return (rhs.rScene == this->rScene) && (rhs.mHandle == this->mHandle);
+	}
 
 	entt::entity mHandle{entt::null};
 

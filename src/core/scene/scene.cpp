@@ -49,7 +49,10 @@ Entity Scene::CreateEntity(Scene* scene, std::string_view name)
 	entity.addComponent<NameComponent>(name.empty() ? "Entity" : name);
 	entity.addComponent<RelationshipComponent>();
 	scene->gEntityMap[id] = entity;
+
 	id++;
+
+	scene->mDrawOrder.push_back(entity);
 
 	return entity;
 }
@@ -300,8 +303,11 @@ Entity Scene::tryGetEntityById(uint32_t id)
 	return it->second;
 }
 
-void Scene::destroyEntity(core::Entity& entity)
+void Scene::destroyEntity(Entity& entity)
 {
+	mDrawOrder.erase(std::remove_if(mDrawOrder.begin(), mDrawOrder.end(),
+									[&entity](Entity& a) { return entity.getId() == a.getId(); }));
+
 	// LOG_INFO("Destroying entity: {}", entity.getComponent<IDComponent>().id);
 	if (entity.hasComponent<ShapeComponent>())
 	{
@@ -316,6 +322,86 @@ void Scene::destroyEntity(core::Entity& entity)
 void Scene::pushCanvas(CanvasWrapper* canvas)
 {
 	rCanvasList.push_back(canvas);
+}
+void Scene::reorder()
+{
+	for (auto& entity : mDrawOrder)
+	{
+		if (entity.hasComponent<SceneComponent>())
+		{
+			auto& scene = entity.getComponent<SceneComponent>();
+			if (this != scene.scene)
+			{
+				mTvgScene->remove(scene.scene->mTvgScene);
+			}
+		}
+		else if (entity.hasComponent<ShapeComponent>())
+		{
+			auto& shape = entity.getComponent<ShapeComponent>();
+			mTvgScene->remove(shape.shape);
+		}
+	}
+
+	for (auto& entity : mDrawOrder)
+	{
+		if (entity.hasComponent<SceneComponent>())
+		{
+			auto& scene = entity.getComponent<SceneComponent>();
+
+			if (this != scene.scene)
+			{
+				scene.scene->reorder();
+				mTvgScene->push(scene.scene->mTvgScene);
+			}
+		}
+		else if (entity.hasComponent<ShapeComponent>())
+		{
+			auto& shape = entity.getComponent<ShapeComponent>();
+			mTvgScene->push(shape.shape);
+		}
+	}
+}
+
+void Scene::changeDrawOrder(const Entity& entity, ChangeOrderType changeOrderType)
+{
+	auto it = std::find(mDrawOrder.begin(), mDrawOrder.end(), entity);
+	if (it == mDrawOrder.end())
+	{
+		return;
+	}
+	int idx = it - mDrawOrder.begin();
+	int nextIdx = 0;
+	switch (changeOrderType)
+	{
+		case ChangeOrderType::ToFront:
+		{
+			nextIdx = mDrawOrder.size() - 1;
+			break;
+		}
+		case ChangeOrderType::ToBack:
+		{
+			nextIdx = 0;
+			break;
+		}
+		case ChangeOrderType::ToForward:
+		{
+			nextIdx = idx + 1;
+			break;
+		}
+		case ChangeOrderType::ToBackward:
+		{
+			nextIdx = idx - 1;
+			break;
+		}
+	};
+	if (nextIdx == idx || nextIdx < 0 || mDrawOrder.size() <= nextIdx)
+	{
+		return;
+	}
+
+	std::swap(mDrawOrder[idx], mDrawOrder[nextIdx]);
+
+	reorder();
 }
 
 void Scene::onUpdate()
