@@ -549,6 +549,7 @@ static void Update(ShapeComponent& shape, StrokeComponent& stroke)
 	shape.shape->strokeWidth(stroke.width);
 	shape.shape->strokeFill(static_cast<uint32_t>(stroke.color.x), static_cast<uint32_t>(stroke.color.y),
 							static_cast<uint32_t>(stroke.color.z), static_cast<uint32_t>(stroke.alpha));
+	shape.shape->order(true);
 }
 
 template <typename TComponent>
