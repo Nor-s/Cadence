@@ -44,9 +44,13 @@ source_file = [
     meson.current_source_dir().join('scene/ui/editPath.cpp'),
     meson.current_source_dir().join('scene/ui/editPath.h'),
 
-    meson.current_source_dir().join('scene/component/components.cpp'),
     meson.current_source_dir().join('scene/component/components.h'),
+    meson.current_source_dir().join('scene/component/path.cpp'),
+    meson.current_source_dir().join('scene/component/path.h'),
+    meson.current_source_dir().join('scene/component/keyframe.h'),
 
+    meson.current_source_dir().join('interface/editHelper.cpp'),
+    meson.current_source_dir().join('interface/editHelper.h'),
     meson.current_source_dir().join('interface/editInterface.h'),
     meson.current_source_dir().join('interface/editInterface.cpp'),
 

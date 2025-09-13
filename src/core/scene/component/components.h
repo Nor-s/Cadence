@@ -3,6 +3,8 @@
 
 #include "common/common.h"
 #include "../entity.h"
+#include "keyframe.h"
+#include "path.h"
 
 #include <string>
 #include <string_view>
@@ -42,210 +44,21 @@ struct RelationshipComponent
 	{
 	}
 };
+
+struct DestroyState
+{
+	bool dummy;
+};
+
 struct ShapeComponent
 {
 	Entity owner;
 	tvg::Shape* shape{nullptr};
 };
 
-template <typename T>
-struct Keyframes
-{
-	struct Keyframe
-	{
-		uint32_t frame{0};
-		T value{0};
-		bool operator<(const Keyframe& rhs) const
-		{
-			return frame < rhs.frame;
-		}
-	};
-	bool isEnable{false};
-	std::vector<Keyframe> frames;
-
-	auto begin()
-	{
-		return frames.begin();
-	}
-	auto end()
-	{
-		return frames.end();
-	}
-
-	void add(uint32_t frameNo, const T& value)
-	{
-		auto it = std::find_if(frames.begin(), frames.end(),
-							   [frameNo](const auto& keyframe) { return frameNo == keyframe.frame; });
-		if (it == frames.end())
-		{
-			isEnable = true;
-			if (frames.empty() && frameNo != 0)
-			{
-				frames.push_back(Keyframe{.frame = 0, .value = value});
-			}
-			frames.push_back(Keyframe{.frame = frameNo, .value = value});
-			std::sort(frames.begin(), frames.end());
-		}
-		else
-		{
-			it->value = value;
-		}
-	}
-
-	T frame(float frameNo)
-	{
-		if (!isEnable || frames.empty())
-		{
-			assert(false);
-			return T{};
-		}
-		if (frames.size() == 1)
-			return frames[0].value;
-
-		auto it = std::lower_bound(frames.begin(), frames.end(), frameNo,
-								   [](const Keyframe& k, float f) { return k.frame < f; });
-
-		if (it == frames.end())
-		{
-			return frames.back().value;
-		}
-		if (frames.begin() == it)
-		{
-			return it->value;
-		}
-
-		const auto& lo = *(it - 1);
-		const auto& hi = *it;
-		const float denom = float(hi.frame - lo.frame);
-		const float t = denom > 0.f ? (frameNo - static_cast<float>(lo.frame)) / denom : 0.f;
-		assert(t >= 0.0f && t <= 1.0f);
-
-		// todo: curve
-		return lerp(lo.value, hi.value, t);
-	}
-};
-
-using IntegerKeyFrame = Keyframes<int>;
-using FloatKeyFrame = Keyframes<float>;
-using VectorKeyFrame = Keyframes<Vec2>;
-using ColorKeyFrame = Keyframes<Vec3>;
-
 struct SceneComponent
 {
 	Scene* scene{nullptr};
-};
-
-struct IPathComponent
-{
-};
-
-struct PathsComponent
-{
-	std::vector<IPathComponent> paths;
-};
-
-// shape
-// todo: array PathComponent
-struct RectPathComponent
-{
-	float radius{0.0};
-	Vec2 position{0.0f, 0.0f};
-	Vec2 scale{100.0f, 100.0f};
-
-	FloatKeyFrame radiusKeyframes;
-	VectorKeyFrame positionKeyframes;
-	VectorKeyFrame scaleKeyframes;
-
-	void update(float frameNo)
-	{
-		if (radiusKeyframes.isEnable)
-			radius = radiusKeyframes.frame(frameNo);
-		if (positionKeyframes.isEnable)
-			position = positionKeyframes.frame(frameNo);
-		if (scaleKeyframes.isEnable)
-			scale = scaleKeyframes.frame(frameNo);
-	}
-};
-
-struct ElipsePathComponent
-{
-	Vec2 position{0.0f, 0.0f};
-	Vec2 scale{100.0f, 100.0f};
-
-	VectorKeyFrame positionKeyframes;
-	VectorKeyFrame scaleKeyframes;
-
-	void update(float frameNo)
-	{
-		if (positionKeyframes.isEnable)
-			position = positionKeyframes.frame(frameNo);
-		if (scaleKeyframes.isEnable)
-			scale = scaleKeyframes.frame(frameNo);
-	}
-};
-
-struct PathComponent
-{
-	PathPoints path{};
-	Vec2 center{};
-};
-
-struct PolygonPathComponent
-{
-	int points{3};
-	float rotation{0.0f};
-	float outerRadius{100.0f};
-	Vec2 position{0.0f, 0.0f};
-
-	PathComponent path;
-
-	IntegerKeyFrame pointsKeyframes;
-	FloatKeyFrame rotationKeyframes;
-	FloatKeyFrame outerRadiusKeyframes;
-	VectorKeyFrame positionKeyframes;
-
-	void update(float frameNo)
-	{
-		if (pointsKeyframes.isEnable)
-			points = pointsKeyframes.frame(frameNo);
-		if (rotationKeyframes.isEnable)
-			rotation = rotationKeyframes.frame(frameNo);
-		if (outerRadiusKeyframes.isEnable)
-			outerRadius = outerRadiusKeyframes.frame(frameNo);
-		if (positionKeyframes.isEnable)
-			position = positionKeyframes.frame(frameNo);
-	}
-};
-
-struct StarPolygonPathComponent
-{
-	int points{5};
-	float rotation{0.0f};
-	float outerRadius{100.0f};
-	float innerRadius{100.0f};
-	Vec2 position{0.0f, 0.0f};
-
-	PathComponent path;
-
-	IntegerKeyFrame pointsKeyframes;
-	FloatKeyFrame rotationKeyframes;
-	FloatKeyFrame outerRadiusKeyframes;
-	FloatKeyFrame innerRadiusKeyframes;
-	VectorKeyFrame positionKeyframes;
-
-	void update(float frameNo)
-	{
-		if (pointsKeyframes.isEnable)
-			points = pointsKeyframes.frame(frameNo);
-		if (rotationKeyframes.isEnable)
-			rotation = rotationKeyframes.frame(frameNo);
-		if (outerRadiusKeyframes.isEnable)
-			outerRadius = outerRadiusKeyframes.frame(frameNo);
-		if (innerRadiusKeyframes.isEnable)
-			innerRadius = innerRadiusKeyframes.frame(frameNo);
-		if (positionKeyframes.isEnable)
-			position = positionKeyframes.frame(frameNo);
-	}
 };
 
 struct TransformComponent
@@ -374,6 +187,15 @@ struct TransformKeyframeComponent
 	VectorKeyFrame positionKeyframes;
 	VectorKeyFrame scaleKeyframes;
 	FloatKeyFrame rotationKeyframes;
+
+	bool update(float frameNo, TransformComponent& transform)
+	{
+		bool changed = false;
+		UPDATE_KEYFRAME(positionKeyframes, transform.localPosition, frameNo, changed);
+		UPDATE_KEYFRAME(scaleKeyframes, transform.scale, frameNo, changed);
+		UPDATE_KEYFRAME(rotationKeyframes, transform.rotation, frameNo, changed);
+		return changed;
+	}
 };
 
 struct SolidFillComponent
@@ -385,12 +207,12 @@ struct SolidFillComponent
 	ColorKeyFrame colorKeyframe;
 	FloatKeyFrame alphaKeyframe;
 
-	void update(float frameNo)
+	bool update(float frameNo)
 	{
-		if (colorKeyframe.isEnable)
-			color = colorKeyframe.frame(frameNo);
-		if (alphaKeyframe.isEnable)
-			alpha = alphaKeyframe.frame(frameNo);
+		bool changed = false;
+		UPDATE_KEYFRAME(colorKeyframe, color, frameNo, changed);
+		UPDATE_KEYFRAME(alphaKeyframe, alpha, frameNo, changed);
+		return changed;
 	}
 };
 
@@ -405,14 +227,13 @@ struct StrokeComponent
 	FloatKeyFrame widthKeyframe;
 	FloatKeyFrame alphaKeyframe;
 
-	void update(float frameno)
+	bool update(float frameNo)
 	{
-		if (colorKeyframe.isEnable)
-			color = colorKeyframe.frame(frameno);
-		if (alphaKeyframe.isEnable)
-			alpha = alphaKeyframe.frame(frameno);
-		if (widthKeyframe.isEnable)
-			width = widthKeyframe.frame(frameno);
+		bool changed = false;
+		UPDATE_KEYFRAME(colorKeyframe, color, frameNo, changed);
+		UPDATE_KEYFRAME(alphaKeyframe, alpha, frameNo, changed);
+		UPDATE_KEYFRAME(widthKeyframe, width, frameNo, changed);
+		return changed;
 	}
 };
 
@@ -432,9 +253,8 @@ static void Update(ShapeComponent& shape, TransformComponent& transform)
 	shape.shape->transform(transform.localTransform);
 }
 
-static void Update(ShapeComponent& shape, PathComponent& path)
+static void Update(ShapeComponent& shape, RawPath& path)
 {
-	Reset(shape);
 	if (!path.path.empty())
 	{
 		std::vector<tvg::PathCommand> types;
@@ -482,7 +302,7 @@ static void Update(ShapeComponent& shape, PathComponent& path)
 	}
 }
 
-static void Update(ShapeComponent& shape, StarPolygonPathComponent& path)
+static void Update(ShapeComponent& shape, StarPolygonPath& path)
 {
 	const float start = -90.0f;
 	const float step = 360.0f / (path.points * 2.0f);
@@ -507,7 +327,7 @@ static void Update(ShapeComponent& shape, StarPolygonPathComponent& path)
 	Update(shape, path.path);
 }
 
-static void Update(ShapeComponent& shape, PolygonPathComponent& path)
+static void Update(ShapeComponent& shape, PolygonPath& path)
 {
 	const float start = -90.0f;
 	const float step = 360.0f / path.points;
@@ -532,15 +352,13 @@ static void Update(ShapeComponent& shape, PolygonPathComponent& path)
 	Update(shape, path.path);
 }
 
-static void Update(ShapeComponent& shape, ElipsePathComponent& path)
+static void Update(ShapeComponent& shape, EllipsePath& path)
 {
-	Reset(shape);
 	shape.shape->appendCircle(path.position.x, path.position.y, path.scale.x * 0.5f, path.scale.y * 0.5f);
 }
 
-static void Update(ShapeComponent& shape, RectPathComponent& path)
+static void Update(ShapeComponent& shape, RectPath& path)
 {
-	Reset(shape);
 	const float x = path.position.x - path.scale.x * 0.5f;
 	const float y = path.position.y - path.scale.y * 0.5f;
 	shape.shape->appendRect(x, y, path.scale.x, path.scale.y, path.radius, path.radius);
@@ -576,7 +394,7 @@ static bool UpdateShape(Entity& entity, ShapeComponent& shape)
 	return false;
 }
 
-static void Resolve(TransformComponent& transform, PathComponent& path)
+static void Resolve(TransformComponent& transform, RawPath& path)
 {
 	Vec2 center{0.0f, 0.0f};
 	float count = 0;

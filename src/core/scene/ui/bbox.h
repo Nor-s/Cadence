@@ -54,6 +54,11 @@ public:
 	Entity rTarget;
 
 private:
+	void update();
+	void init();
+	void setVisible(bool isVisible);
+
+private:
 	Scene* rScene{nullptr};
 	TransformComponent mBeforeTransform;
 	InputController* rInputController{nullptr};

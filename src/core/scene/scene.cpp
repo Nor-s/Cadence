@@ -14,14 +14,18 @@
 
 #include <algorithm>
 
+#include <entt/entt.hpp>
+
 namespace core
 {
 std::unordered_map<tvg::Scene*, Scene*> Scene::gSceneMap;
 std::unordered_map<uint32_t, Entity> Scene::gEntityMap;
 
-Scene::Scene(bool isMainScene) : mIsMainScene(isMainScene)
+Scene::Scene(Scene* parentScene)
 {
-	auto entity = Scene::CreateEntity(this, "Scene");
+	Scene* targetScene = parentScene ? parentScene : this;
+
+	auto entity = Scene::CreateEntity(targetScene, "Scene");
 	auto& scene = entity.addComponent<SceneComponent>();
 	mId = entity.getComponent<IDComponent>().id;
 
@@ -30,10 +34,22 @@ Scene::Scene(bool isMainScene) : mIsMainScene(isMainScene)
 	mTvgScene->id = mId;
 	scene.scene = this;
 	gSceneMap[mTvgScene] = this;
+
+	mStorage.bind(mRegistry);
+	mStorage.on_update<Dirty>();
+
+	if (parentScene)
+	{
+		parentScene->mTvgScene->push(mTvgScene);
+	}
 }
 
 Scene::~Scene()
 {
+	// todo: parentScene -> remove this scene?
+
+	mStorage.clear();
+	mRegistry.on_update<Dirty>().disconnect(&mStorage);
 	mRegistry.view<ShapeComponent>().each([](auto entity, auto& shape) { shape.shape->unref(); });
 	mTvgScene->unref();
 }
@@ -48,11 +64,15 @@ Entity Scene::CreateEntity(Scene* scene, std::string_view name)
 	entity.addComponent<TransformComponent>();
 	entity.addComponent<NameComponent>(name.empty() ? "Entity" : name);
 	entity.addComponent<RelationshipComponent>();
+	entity.addComponent<Dirty>();
 	scene->gEntityMap[id] = entity;
 
 	id++;
 
 	scene->mDrawOrder.push_back(entity);
+
+	scene->mIsDirty = true;
+	entity.setDirty();
 
 	return entity;
 }
@@ -71,6 +91,11 @@ Entity Scene::FindEntity(uint32_t entityId)
 	return Entity();
 }
 
+std::unique_ptr<Scene> Scene::createScene()
+{
+	return std::unique_ptr<Scene>();
+}
+
 Entity Scene::createEntity(std::string_view name)
 {
 	return CreateEntity(this, name);
@@ -81,20 +106,22 @@ Entity Scene::createEllipseFillLayer(Vec2 minXy, Vec2 wh)
 	auto entity = CreateEntity(this, "Ellipse Layer");
 	auto& id = entity.getComponent<IDComponent>();
 	auto& transform = entity.getComponent<TransformComponent>();
-	auto& rect = entity.addComponent<ElipsePathComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
 	entity.addComponent<SolidFillComponent>();
+	auto ellipse = std::make_unique<EllipsePath>();
 
 	transform.localPosition = minXy + wh * 0.5f;
 	transform.anchorPoint = {0.0f, 0.0f};
-	rect.scale = wh;
-	rect.position = {0.0f, 0.0f};
+	ellipse->scale = wh;
+	ellipse->position = {0.0f, 0.0f};
 
 	// push shape
 	shape.shape = tvg::Shape::gen();
 	shape.shape->id = id.id;
 	shape.shape->ref();
 
+	pathList.paths.push_back(std::move(ellipse));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -114,21 +141,23 @@ Entity Scene::createRectFillLayer(Vec2 minXy, Vec2 wh)
 	auto entity = CreateEntity(this, "Rect Layer");
 	auto& id = entity.getComponent<IDComponent>();
 	auto& transform = entity.getComponent<TransformComponent>();
-	auto& rect = entity.addComponent<RectPathComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
+	auto rect = std::make_unique<RectPath>();
 	auto& shape = entity.addComponent<ShapeComponent>();
 	entity.addComponent<SolidFillComponent>();
 
 	transform.localPosition = minXy + wh * 0.5f;
 	transform.anchorPoint = {0.0f, 0.0f};
-	rect.scale = wh;
-	rect.radius = 0.0f;
-	rect.position = {0.0f, 0.0f};
+	rect->scale = wh;
+	rect->radius = 0.0f;
+	rect->position = {0.0f, 0.0f};
 
 	// push shape
 	shape.shape = tvg::Shape::gen();
 	shape.shape->id = id.id;
 	shape.shape->ref();
 
+	pathList.paths.push_back(std::move(rect));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -148,22 +177,24 @@ Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& polygon = entity.addComponent<PolygonPathComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
+	auto polygon = std::make_unique<PolygonPath>();
 
 	entity.addComponent<SolidFillComponent>();
 
 	const auto radius = wh.h / 2.0f;
-	polygon.points = CommonSetting::Count_DefaultPolygonPathPoint;
-	polygon.outerRadius = radius;
+	polygon->points = CommonSetting::Count_DefaultPolygonPathPoint;
+	polygon->outerRadius = radius;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localPosition = polygon.path.center = minXy + wh * 0.5f;
+	transform.localPosition = polygon->path.center = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
+	pathList.paths.push_back(std::move(polygon));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -187,23 +218,25 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& star = entity.addComponent<StarPolygonPathComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
+	auto star = std::make_unique<StarPolygonPath>();
 
 	entity.addComponent<SolidFillComponent>();
 
 	const auto radius = wh.h / 2.0f;
-	star.points = CommonSetting::Count_DefaultStarPolygonPathPoint;
-	star.outerRadius = radius;
-	star.innerRadius = radius / 2.0f;
+	star->points = CommonSetting::Count_DefaultStarPolygonPathPoint;
+	star->outerRadius = radius;
+	star->innerRadius = radius / 2.0f;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	star.path.center = transform.localPosition = minXy + wh * 0.5f;
+	star->path.center = transform.localPosition = minXy + wh * 0.5f;
 	transform.scale.x = wh.w * 0.5f / radius;
 
 	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
+	pathList.paths.push_back(std::move(star));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -218,8 +251,9 @@ Entity Scene::createPathLayer(PathPoints path)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& pathComponent = entity.addComponent<PathComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
 	auto& stroke = entity.addComponent<StrokeComponent>();
+	auto rawPath = std::make_unique<RawPath>();
 
 	stroke.width = CommonSetting::Width_DefaultPathLine;
 
@@ -235,9 +269,10 @@ Entity Scene::createPathLayer(PathPoints path)
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
-	pathComponent.path = path;
-	pathComponent.center = transform.localPosition;
+	rawPath->path = path;
+	rawPath->center = transform.localPosition;
 
+	pathList.paths.push_back(std::move(rawPath));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -251,8 +286,9 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
-	auto& path = entity.addComponent<PathComponent>();
 	auto& stroke = entity.addComponent<StrokeComponent>();
+	auto& pathList = entity.addComponent<PathListComponent>();
+	auto rawPath = std::make_unique<RawPath>();
 
 	auto minx = std::min({points[0].x, points[1].x, points[2].x, points[3].x});
 	auto maxx = std::max({points[0].x, points[1].x, points[2].x, points[3].x});
@@ -266,23 +302,24 @@ Entity Scene::createObb(const std::array<Vec2, 4>& points)
 	transform.localPosition = {minx + width * 0.5f, miny + height * 0.5f};
 
 	auto centerp = transform.localPosition;
-	path.path.resize(5);
-	path.path[0].type = PathPoint::Command::MoveTo;
-	path.path[1].type = PathPoint::Command::LineTo;
-	path.path[2].type = PathPoint::Command::LineTo;
-	path.path[3].type = PathPoint::Command::LineTo;
-	path.path[4].type = PathPoint::Command::Close;
-	path.center = Vec2{width / 2, height / 2};
+	rawPath->path.resize(5);
+	rawPath->path[0].type = PathPoint::Command::MoveTo;
+	rawPath->path[1].type = PathPoint::Command::LineTo;
+	rawPath->path[2].type = PathPoint::Command::LineTo;
+	rawPath->path[3].type = PathPoint::Command::LineTo;
+	rawPath->path[4].type = PathPoint::Command::Close;
+	rawPath->center = Vec2{width / 2, height / 2};
 
 	for (int i = 0; i < 4; i++)
 	{
-		path.path[i].localPosition = points[i] - centerp;
+		rawPath->path[i].localPosition = points[i] - centerp;
 	}
 
 	shape.shape = tvg::Shape::gen();
 	shape.shape->ref();
 	shape.shape->id = id.id;
 
+	pathList.paths.push_back(std::move(rawPath));
 	entity.update();
 	mTvgScene->push(shape.shape);
 
@@ -314,10 +351,14 @@ void Scene::destroyEntity(Entity& entity)
 		auto& shape = entity.getComponent<ShapeComponent>();
 		mTvgScene->remove(shape.shape);
 		shape.shape->unref();
+		entity.removeComponent<ShapeComponent>();
 	}
 	gEntityMap.erase(entity.getComponent<IDComponent>().id);
-	mRegistry.destroy(entity.mHandle);
+	mDeletedEntity.insert(entity.mHandle);
+	entity.getOrAddComponent<DestroyState>();
+
 	entity.mHandle = entt::null;
+	mIsDirty = true;
 }
 void Scene::pushCanvas(CanvasWrapper* canvas)
 {
@@ -360,51 +401,53 @@ void Scene::reorder()
 			mTvgScene->push(shape.shape);
 		}
 	}
+	mIsDirty = true;
 }
 
 void Scene::changeDrawOrder(const Entity& entity, ChangeOrderType changeOrderType)
 {
 	auto it = std::find(mDrawOrder.begin(), mDrawOrder.end(), entity);
-	if (it == mDrawOrder.end())
-	{
+	if (it == mDrawOrder.end() || mDrawOrder.size() < 2)
 		return;
-	}
-	int idx = it - mDrawOrder.begin();
-	int nextIdx = 0;
+
 	switch (changeOrderType)
 	{
 		case ChangeOrderType::ToFront:
 		{
-			nextIdx = mDrawOrder.size() - 1;
+			auto last = std::prev(mDrawOrder.end());
+			if (it == last)
+				return;
+			mDrawOrder.splice(mDrawOrder.end(), mDrawOrder, it);
 			break;
 		}
 		case ChangeOrderType::ToBack:
 		{
-			nextIdx = 0;
+			if (it == mDrawOrder.begin())
+				return;
+			mDrawOrder.splice(mDrawOrder.begin(), mDrawOrder, it);
 			break;
 		}
 		case ChangeOrderType::ToForward:
 		{
-			nextIdx = idx + 1;
+			auto next = std::next(it);
+			if (next == mDrawOrder.end())
+				return;
+			mDrawOrder.splice(std::next(next), mDrawOrder, it);
 			break;
 		}
 		case ChangeOrderType::ToBackward:
 		{
-			nextIdx = idx - 1;
+			if (it == mDrawOrder.begin())
+				return;
+			auto prev = std::prev(it);
+			mDrawOrder.splice(prev, mDrawOrder, it);
 			break;
 		}
-	};
-	if (nextIdx == idx || nextIdx < 0 || mDrawOrder.size() <= nextIdx)
-	{
-		return;
 	}
-
-	std::swap(mDrawOrder[idx], mDrawOrder[nextIdx]);
 
 	reorder();
 }
-
-void Scene::onUpdate()
+bool Scene::onUpdate()
 {
 	// todo: this canvas maybe no scene owner (current canvas count == 1)
 	auto* canvasPtr = GetCurrentAnimCanvas();
@@ -414,75 +457,100 @@ void Scene::onUpdate()
 	auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvasPtr);
 	auto* animator = animCanvas->mAnimator.get();
 	const auto keyframeNo = animator->mCurrentFrameNo;
-	{
-		mRegistry.view<TransformComponent, TransformKeyframeComponent>().each(
-			[keyframeNo](auto entity, TransformComponent& transform, TransformKeyframeComponent& keyframes)
+	bool isStop = animator->mIsStop;
+
+	mRegistry.view<TransformComponent, TransformKeyframeComponent>().each(
+		[keyframeNo, scene = this](auto entity, TransformComponent& transform, TransformKeyframeComponent& keyframes)
+		{
+			if (keyframes.update(keyframeNo, transform))
 			{
-				if (keyframes.positionKeyframes.isEnable)
-					transform.localPosition = keyframes.positionKeyframes.frame(keyframeNo);
-				if (keyframes.scaleKeyframes.isEnable)
-					transform.scale = keyframes.scaleKeyframes.frame(keyframeNo);
-				if (keyframes.rotationKeyframes.isEnable)
-					transform.rotation = keyframes.rotationKeyframes.frame(keyframeNo);
+				Entity(scene, (uint32_t) entity).setDirty(core::Dirty::Type::Transform);
+			}
+		});
+
+	// if (!isStop)
+	{
+		mRegistry.view<PathListComponent>().each(
+			[keyframeNo, scene = this](auto entity, PathListComponent& path)
+			{
+				bool isChanged = false;
+				for (auto& p : path.paths)
+				{
+					isChanged |= p->update(keyframeNo);
+				}
+				if (isChanged)
+					Entity(scene, (uint32_t) entity).setDirty(core::Dirty::Type::Path);
+			});
+		mRegistry.view<SolidFillComponent>().each(
+			[keyframeNo, scene = this](auto entity, SolidFillComponent& fill)
+			{
+				if (fill.update(keyframeNo))
+					Entity(scene, (uint32_t) entity).setDirty(core::Dirty::Type::Fill);
+			});
+
+		mRegistry.view<StrokeComponent>().each(
+			[keyframeNo, scene = this](auto entity, StrokeComponent& stroke)
+			{
+				if (stroke.update(keyframeNo))
+					Entity(scene, (uint32_t) entity).setDirty(core::Dirty::Type::Stroke);
 			});
 	}
 
-	mRegistry.view<TransformComponent, PathComponent, ShapeComponent>().each(
-		[](auto entity, TransformComponent& transform, PathComponent& path, ShapeComponent& shape)
-		{
-			Update(shape, transform);
-			Update(shape, path);
-		});
-	mRegistry.view<TransformComponent, ElipsePathComponent, ShapeComponent>().each(
-		[keyframeNo](auto entity, TransformComponent& transform, ElipsePathComponent& path, ShapeComponent& shape)
-		{
-			path.update(keyframeNo);
-			Update(shape, transform);
-			Update(shape, path);
-		});
-	mRegistry.view<TransformComponent, RectPathComponent, ShapeComponent>().each(
-		[keyframeNo](auto entity, TransformComponent& transform, RectPathComponent& path, ShapeComponent& shape)
-		{
-			path.update(keyframeNo);
-			Update(shape, transform);
-			Update(shape, path);
-		});
-	mRegistry.view<TransformComponent, StarPolygonPathComponent, ShapeComponent>().each(
-		[keyframeNo](auto entity, TransformComponent& transform, StarPolygonPathComponent& path, ShapeComponent& shape)
-		{
-			path.update(keyframeNo);
-			Update(shape, transform);
-			Update(shape, path);
-		});
-	mRegistry.view<TransformComponent, PolygonPathComponent, ShapeComponent>().each(
-		[keyframeNo](auto entity, TransformComponent& transform, PolygonPathComponent& path, ShapeComponent& shape)
-		{
-			path.update(keyframeNo);
-			Update(shape, transform);
-			Update(shape, path);
-		});
+	for (auto& entity : mStorage)
+	{
+		auto& dirty = mRegistry.get<Dirty>(entity);
+		auto e = Entity(this, (uint32_t) entity);
 
-	mRegistry.view<ShapeComponent, SolidFillComponent>().each(
-		[keyframeNo](auto entity, ShapeComponent& shape, SolidFillComponent& fill)
+		if (e.hasComponent<DestroyState>())
 		{
-			fill.update(keyframeNo);
-			Update(shape, fill);
-		});
-	mRegistry.view<ShapeComponent, StrokeComponent>().each(
-		[keyframeNo](auto entity, ShapeComponent& shape, StrokeComponent& stroke)
-		{
-			stroke.update(keyframeNo);
-			Update(shape, stroke);
-		});
+			continue;
+		}
 
-	mRegistry.view<SceneComponent>().each(
-		[this](auto entity, SceneComponent& scene)
+		if (e.hasComponent<ShapeComponent>())
 		{
-			if (scene.scene->mId != this->mId)
+			auto& shape = e.getComponent<ShapeComponent>();
+			if (HasDirty(dirty, Dirty::Type::Transform))
 			{
-				scene.scene->onUpdate();
+				Update(shape, e.getComponent<TransformComponent>());
 			}
-		});
+			if (HasDirty(dirty, Dirty::Type::Path) || HasDirty(dirty, Dirty::Type::Fill) ||
+				HasDirty(dirty, Dirty::Type::Stroke))
+			{
+				e.updateShapePath();
+				if (e.hasComponent<SolidFillComponent>())
+				{
+					Update(shape, e.getComponent<SolidFillComponent>());
+				}
+				if (e.hasComponent<StrokeComponent>())
+				{
+					Update(shape, e.getComponent<StrokeComponent>());
+				}
+			}
+		}
+
+		dirty.mask = Dirty::Type::None;
+	}
+
+	bool isUpdate = false;
+	if (mStorage.size() > 0 || mIsDirty)
+	{
+		isUpdate = true;
+	}
+
+	mStorage.clear();
+	mIsDirty = false;
+
+	return isUpdate;
+}
+
+void Scene::destroy()
+{
+	// todo: refactor [create - reference - update - destroy] ... life cycle
+	for (auto entity : mDeletedEntity)
+	{
+		mRegistry.destroy(entity);
+	}
+	mDeletedEntity.clear();
 }
 
 }	 // namespace core

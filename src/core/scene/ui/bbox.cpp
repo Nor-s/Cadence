@@ -40,12 +40,8 @@ BBox::~BBox()
 // must update after update target entity
 void BBox::onUpdate()
 {
-	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
-	{
-		return;
-	}
-
 	retarget(rTarget);
+	init();
 }
 
 void BBox::retarget(Entity target)
@@ -64,8 +60,97 @@ void BBox::retarget(Entity target)
 	}
 
 	rTarget = target;
+	update();
+}
 
-	auto& targetShape = target.getComponent<ShapeComponent>();
+bool BBox::onStartClickLeftMouse(const InputValue& inputValue)
+{
+	mStartPoint = inputValue.get<Vec2>();
+	mCurrentPoint = mBeforePoint = mStartPoint;
+
+	if (mCurrentControlType != ControlTypeCount)
+	{
+		mCurrentControlType = ControlTypeCount;
+		return false;
+	}
+
+	if (rTarget.isNull())
+	{
+		return false;
+	}
+
+	for (int type = 0; type < ControlTypeCount; type++)
+	{
+		if (mControlBox[type]->onStartLeftDown(mStartPoint))
+		{
+			mBeforeTransform = rTarget.getComponent<TransformComponent>();
+			mCurrentControlType = ControlType(type);
+			return true;
+		}
+	}
+	mCurrentControlType = ControlTypeCount;
+	return false;
+}
+bool BBox::onDragLeftMouse(const InputValue& inputValue)
+{
+	mBeforePoint = mCurrentPoint;
+	mCurrentPoint = inputValue.get<Vec2>();
+
+	if (rTarget.isNull() || mCurrentControlType == ControlTypeCount)
+	{
+		return false;
+	}
+
+	mIsDrag = mControlBox[mCurrentControlType]->onDragLeftMouse();
+	return mIsDrag;
+}
+bool BBox::onEndLeftMouse(const InputValue& inputValue)
+{
+	mIsDrag = false;
+	// todo: undo/redo event & keyframe
+	if (mCurrentControlType == ControlTypeCount)
+	{
+		return false;
+	}
+
+	UpdateEntityEnd(rTarget.getComponent<IDComponent>().id);
+
+	mCurrentControlType = ControlTypeCount;
+	return true;
+}
+
+bool BBox::onMoveMouse(const InputValue& inputValue)
+{
+	if (mIsDrag)
+		return true;
+
+	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
+		return false;
+
+	auto& shape = rTarget.getComponent<ShapeComponent>();
+	return IsInner(shape.shape, inputValue.get<Vec2>());
+}
+
+void BBox::update()
+{
+	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
+	{
+		setVisible(false);
+		return;
+	}
+	if (!mControlBox[BoxArea])
+	{
+		init();
+	}
+	setVisible(true);
+}
+
+void BBox::init()
+{
+	if (rTarget.isNull())
+		return;
+
+	auto& targetShape = rTarget.getComponent<ShapeComponent>();
 	auto moveAnchorPoint = [this]()
 	{
 		LOG_INFO("TODO: move AnchorPoint");
@@ -216,72 +301,16 @@ void BBox::retarget(Entity target)
 	}
 }
 
-bool BBox::onStartClickLeftMouse(const InputValue& inputValue)
+void BBox::setVisible(bool isVisible)
 {
-	mStartPoint = inputValue.get<Vec2>();
-	mCurrentPoint = mBeforePoint = mStartPoint;
-
-	if (mCurrentControlType != ControlTypeCount)
+	if (!mControlBox[0])
 	{
-		mCurrentControlType = ControlTypeCount;
-		return false;
+		return;
 	}
-
-	if (rTarget.isNull())
+	for (auto& controlBox : mControlBox)
 	{
-		return false;
+		controlBox->setVisible(isVisible);
 	}
-
-	for (int type = 0; type < ControlTypeCount; type++)
-	{
-		if (mControlBox[type]->onStartLeftDown(mStartPoint))
-		{
-			mBeforeTransform = rTarget.getComponent<TransformComponent>();
-			mCurrentControlType = ControlType(type);
-			return true;
-		}
-	}
-	mCurrentControlType = ControlTypeCount;
-	return false;
-}
-bool BBox::onDragLeftMouse(const InputValue& inputValue)
-{
-	mBeforePoint = mCurrentPoint;
-	mCurrentPoint = inputValue.get<Vec2>();
-
-	if (rTarget.isNull() || mCurrentControlType == ControlTypeCount)
-	{
-		return false;
-	}
-
-	mIsDrag = mControlBox[mCurrentControlType]->onDragLeftMouse();
-	return mIsDrag;
-}
-bool BBox::onEndLeftMouse(const InputValue& inputValue)
-{
-	mIsDrag = false;
-	// todo: undo/redo event & keyframe
-	if (mCurrentControlType == ControlTypeCount)
-	{
-		return false;
-	}
-
-	UpdateEntityEnd(rTarget.getComponent<IDComponent>().id);
-
-	mCurrentControlType = ControlTypeCount;
-	return true;
-}
-
-bool BBox::onMoveMouse(const InputValue& inputValue)
-{
-	if (mIsDrag)
-		return true;
-
-	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
-		return false;
-
-	auto& shape = rTarget.getComponent<ShapeComponent>();
-	return IsInner(shape.shape, inputValue.get<Vec2>());
 }
 
 }	 // namespace core

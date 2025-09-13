@@ -16,16 +16,13 @@ namespace core
 AnimationCreatorCanvas::AnimationCreatorCanvas(void* context, Size size, bool bIsSw)
 	: CanvasWrapper(context, size, bIsSw)
 {
-	mScene = std::make_unique<core::Scene>(true);
-	mOverlayScene = std::make_unique<core::Scene>(false);
-	mControlScene = std::make_unique<core::Scene>(false);
+	mCanvasScene = std::make_unique<core::Scene>();
+	mMainScene = std::make_unique<core::Scene>(mCanvasScene.get());
+	mControlScene = std::make_unique<core::Scene>();
 	mAnimator = std::make_unique<core::Animator>(this);
 
-	mScene->pushCanvas(this);
-	mCanvas->push(mScene->mTvgScene);
-
-	mOverlayScene->pushCanvas(this);
-	mCanvas->push(mOverlayScene->mTvgScene);
+	mCanvasScene->pushCanvas(this);
+	mCanvas->push(mCanvasScene->mTvgScene);
 
 	mControlScene->pushCanvas(this);
 	mCanvas->push(mControlScene->mTvgScene);
@@ -45,9 +42,13 @@ void AnimationCreatorCanvas::onUpdate()
 	CanvasWrapper::onUpdate();
 
 	mAnimator->update();
-	mScene->onUpdate();
-	mOverlayScene->onUpdate();
+	mIsDirty |= mMainScene->onUpdate();
 	mInputController->onUpdate();
-	mControlScene->onUpdate();
+	mIsDirty |= mControlScene->onUpdate();
+}
+void AnimationCreatorCanvas::onDestroy()
+{
+	mMainScene->destroy();
+	mControlScene->destroy();
 }
 }	 // namespace core

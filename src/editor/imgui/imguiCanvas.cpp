@@ -239,7 +239,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				{
 					color = color * 255.0f;
 					UpdateEntitySolidFillColorCurrentFrame(entity.getId(), color.r, color.g, color.b,
-														   isBeforeColorEdit && !isSFColorEdit);
+														   isBeforeColorEdit && !isSFColorEdit, false);
 				}
 
 				static bool isSFAlphaEdit = false;
@@ -251,7 +251,8 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				if (isSFAlphaEdit || IsBeforeAlphaEdit)
 				{
 					alpha = alpha * 255.0f;
-					UpdateEntitySolidFillAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSFAlphaEdit);
+					UpdateEntitySolidFillAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSFAlphaEdit,
+														   false);
 				}
 
 				if (ImGui::Button("- Fill"))
@@ -286,7 +287,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				if (isStrokeWidthEdit || IsBeforeStrokeWidthEdit)
 				{
 					UpdateEntityStrokeWidthCurrentFrame(entity.getId(), width,
-														IsBeforeStrokeWidthEdit && !isStrokeWidthEdit);
+														IsBeforeStrokeWidthEdit && !isStrokeWidthEdit, false);
 				}
 
 				static bool isSColorEdit = false;
@@ -299,7 +300,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				{
 					color = color * 255.0f;
 					UpdateEntityStrokeColorCurrentFrame(entity.getId(), color.r, color.g, color.b,
-														isBeforeColorEdit && !isSColorEdit);
+														isBeforeColorEdit && !isSColorEdit, false);
 				}
 
 				static bool isSAlphaEdit = false;
@@ -311,7 +312,8 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				if (isSAlphaEdit || IsBeforeAlphaEdit)
 				{
 					alpha = alpha * 255.0f;
-					UpdateEntityStrokeAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSAlphaEdit);
+					UpdateEntityStrokeAlphaCurrentFrame(entity.getId(), alpha, IsBeforeAlphaEdit && !isSAlphaEdit,
+														false);
 				}
 
 				if (ImGui::Button("- Stroke"))
@@ -321,238 +323,240 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 			}
 		}
 	}	 // stroke component
-
-	drawRectComponent(entity);
-	drawElipseComponent(entity);
-	drawPolygonComponent(entity);
-	drawStarPolygonComponent(entity);
+	if (entity.hasComponent<core::PathListComponent>())
+	{
+		auto& path = entity.getComponent<core::PathListComponent>();
+		for (int i = 0; i < path.paths.size(); i++)
+		{
+			auto* p = path.paths[i].get();
+			switch (p->type())
+			{
+				case core::IPath::Type::Ellipse:
+					drawEllipseComponent(entity, *static_cast<core::EllipsePath*>(p), i);
+					break;
+				case core::IPath::Type::Polygon:
+					drawPolygonComponent(entity, *static_cast<core::PolygonPath*>(p), i);
+					break;
+				case core::IPath::Type::Star:
+					drawStarPolygonComponent(entity, *static_cast<core::StarPolygonPath*>(p), i);
+					break;
+				case core::IPath::Type::Rect:
+					drawRectComponent(entity, *static_cast<core::RectPath*>(p), i);
+					break;
+			}
+		}
+	}
+	// drawRectComponent(entity);
+	// drawElipseComponent(entity);
+	// drawPolygonComponent(entity);
+	// drawStarPolygonComponent(entity);
 }
 
-void ImGuiCanvasView::drawRectComponent(core::Entity& entity)
+void ImGuiCanvasView::drawRectComponent(core::Entity& entity, core::RectPath& path, int idx)
 {
-	if (entity.hasComponent<core::RectPathComponent>())
+	if (ImGui::CollapsingHeader("Rect Path"))
 	{
-		if (ImGui::CollapsingHeader("Rect Path"))
+		// Radius
+		static bool isRectRadiusEdit = false;
+		bool wasRectRadiusEdit = isRectRadiusEdit;
+		ImGui::Text("Radius:");
+		ImGui::SameLine();
+		auto radius = path.radius;
+		isRectRadiusEdit = ImGui::DragFloat("## Rect radius", &radius, 0.1f, 0.0f, 1000.0f, "%.1f");
+		if (isRectRadiusEdit || wasRectRadiusEdit)
 		{
-			auto& rect = entity.getComponent<core::RectPathComponent>();
+			UpdateEntityRectPathRadiusCurrentFrame(entity.getId(), idx, radius,
+												   /*finished=*/wasRectRadiusEdit && !isRectRadiusEdit, false);
+		}
 
-			// Radius
-			static bool isRectRadiusEdit = false;
-			bool wasRectRadiusEdit = isRectRadiusEdit;
-			ImGui::Text("Radius:");
-			ImGui::SameLine();
-			auto radius = rect.radius;
-			isRectRadiusEdit = ImGui::DragFloat("## Rect radius", &radius, 0.1f, 0.0f, 1000.0f, "%.1f");
-			if (isRectRadiusEdit || wasRectRadiusEdit)
-			{
-				UpdateEntityRectPathRadiusCurrentFrame(entity.getId(), radius,
-													   /*finished=*/wasRectRadiusEdit && !isRectRadiusEdit);
-			}
+		// Position
+		static bool isRectPosEdit = false;
+		bool wasRectPosEdit = isRectPosEdit;
+		ImGui::Text("Position:");
+		ImGui::SameLine();
+		auto pos = path.position;
+		isRectPosEdit = ImGui::DragFloat2("## Rect position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
+		if (isRectPosEdit || wasRectPosEdit)
+		{
+			UpdateEntityRectPathPositionCurrentFrame(entity.getId(), idx, pos.x, pos.y,
+													 /*finished=*/wasRectPosEdit && !isRectPosEdit, false);
+		}
 
-			// Position
-			static bool isRectPosEdit = false;
-			bool wasRectPosEdit = isRectPosEdit;
-			ImGui::Text("Position:");
-			ImGui::SameLine();
-			auto pos = rect.position;
-			isRectPosEdit = ImGui::DragFloat2("## Rect position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
-			if (isRectPosEdit || wasRectPosEdit)
-			{
-				UpdateEntityRectPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
-														 /*finished=*/wasRectPosEdit && !isRectPosEdit);
-			}
-
-			// Scale
-			static bool isRectScaleEdit = false;
-			bool wasRectScaleEdit = isRectScaleEdit;
-			ImGui::Text("Scale:");
-			ImGui::SameLine();
-			auto scl = rect.scale;
-			isRectScaleEdit = ImGui::DragFloat2("## Rect scale", &scl.x, 0.1f, 0.0f, 10000.0f, "%.1f");
-			if (isRectScaleEdit || wasRectScaleEdit)
-			{
-				UpdateEntityRectPathScaleCurrentFrame(entity.getId(), scl.x, scl.y,
-													  /*finished=*/wasRectScaleEdit && !isRectScaleEdit);
-			}
+		// Scale
+		static bool isRectScaleEdit = false;
+		bool wasRectScaleEdit = isRectScaleEdit;
+		ImGui::Text("Scale:");
+		ImGui::SameLine();
+		auto scl = path.scale;
+		isRectScaleEdit = ImGui::DragFloat2("## Rect scale", &scl.x, 0.1f, 0.0f, 10000.0f, "%.1f");
+		if (isRectScaleEdit || wasRectScaleEdit)
+		{
+			UpdateEntityRectPathScaleCurrentFrame(entity.getId(), idx, scl.x, scl.y,
+												  /*finished=*/wasRectScaleEdit && !isRectScaleEdit, false);
 		}
 	}
 }
 
-void ImGuiCanvasView::drawElipseComponent(core::Entity& entity)
+void ImGuiCanvasView::drawEllipseComponent(core::Entity& entity, core::EllipsePath& path, int idx)
 {
-	if (entity.hasComponent<core::ElipsePathComponent>())
+	if (ImGui::CollapsingHeader("Elipse Path"))
 	{
-		if (ImGui::CollapsingHeader("Elipse Path"))
+		// Position
+		static bool isEllipsePosEdit = false;
+		bool wasEllipsePosEdit = isEllipsePosEdit;
+		ImGui::Text("Position:");
+		ImGui::SameLine();
+		auto pos = path.position;
+		isEllipsePosEdit = ImGui::DragFloat2("## Elipse position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
+		if (isEllipsePosEdit || wasEllipsePosEdit)
 		{
-			auto& ellipse = entity.getComponent<core::ElipsePathComponent>();
+			UpdateEntityElipsePathPositionCurrentFrame(entity.getId(), idx, pos.x, pos.y,
+													   /*finished=*/wasEllipsePosEdit && !isEllipsePosEdit, false);
+		}
 
-			// Position
-			static bool isEllipsePosEdit = false;
-			bool wasEllipsePosEdit = isEllipsePosEdit;
-			ImGui::Text("Position:");
-			ImGui::SameLine();
-			auto pos = ellipse.position;
-			isEllipsePosEdit = ImGui::DragFloat2("## Elipse position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
-			if (isEllipsePosEdit || wasEllipsePosEdit)
-			{
-				UpdateEntityElipsePathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
-														   /*finished=*/wasEllipsePosEdit && !isEllipsePosEdit);
-			}
-
-			// Scale
-			static bool isEllipseScaleEdit = false;
-			bool wasEllipseScaleEdit = isEllipseScaleEdit;
-			ImGui::Text("Scale:");
-			ImGui::SameLine();
-			auto scl = ellipse.scale;
-			isEllipseScaleEdit = ImGui::DragFloat2("## Elipse scale", &scl.x, 0.1f, 0.0f, 10000.0f, "%.1f");
-			if (isEllipseScaleEdit || wasEllipseScaleEdit)
-			{
-				UpdateEntityElipsePathScaleCurrentFrame(entity.getId(), scl.x, scl.y,
-														/*finished=*/wasEllipseScaleEdit && !isEllipseScaleEdit);
-			}
+		// Scale
+		static bool isEllipseScaleEdit = false;
+		bool wasEllipseScaleEdit = isEllipseScaleEdit;
+		ImGui::Text("Scale:");
+		ImGui::SameLine();
+		auto scl = path.scale;
+		isEllipseScaleEdit = ImGui::DragFloat2("## Elipse scale", &scl.x, 0.1f, 0.0f, 10000.0f, "%.1f");
+		if (isEllipseScaleEdit || wasEllipseScaleEdit)
+		{
+			UpdateEntityElipsePathScaleCurrentFrame(entity.getId(), idx, scl.x, scl.y,
+													/*finished=*/wasEllipseScaleEdit && !isEllipseScaleEdit, false);
 		}
 	}
 }
 
-void ImGuiCanvasView::drawPolygonComponent(core::Entity& entity)
+void ImGuiCanvasView::drawPolygonComponent(core::Entity& entity, core::PolygonPath& path, int idx)
 {
-	if (entity.hasComponent<core::PolygonPathComponent>())
+	if (ImGui::CollapsingHeader("Polygon Path"))
 	{
-		if (ImGui::CollapsingHeader("Polygon Path"))
+		// Points
+		static bool isPolyPointsEdit = false;
+		bool wasPolyPointsEdit = isPolyPointsEdit;
+		ImGui::Text("Points:");
+		ImGui::SameLine();
+		int points = path.points;
+		isPolyPointsEdit = ImGui::DragInt("## Polygon points", &points, 1, 3, 30);
+		if (isPolyPointsEdit || wasPolyPointsEdit)
 		{
-			auto& poly = entity.getComponent<core::PolygonPathComponent>();
-
-			// Points
-			static bool isPolyPointsEdit = false;
-			bool wasPolyPointsEdit = isPolyPointsEdit;
-			ImGui::Text("Points:");
-			ImGui::SameLine();
-			int points = poly.points;
-			isPolyPointsEdit = ImGui::DragInt("## Polygon points", &points, 1, 3, 30);
-			if (isPolyPointsEdit || wasPolyPointsEdit)
-			{
-				UpdateEntityPolygonPathPointsCurrentFrame(entity.getId(), points,
-														  /*finished=*/wasPolyPointsEdit && !isPolyPointsEdit);
-			}
-
-			// Rotation
-			// static bool isPolyRotEdit = false;
-			// bool wasPolyRotEdit = isPolyRotEdit;
-			// ImGui::Text("Rotation:");
-			// ImGui::SameLine();
-			// auto rot = poly.rotation;
-			// isPolyRotEdit = ImGui::DragFloat("## Polygon rotation", &rot, 0.1f, -360.0f, 360.0f, "%.1f");
-			// if (isPolyRotEdit || wasPolyRotEdit)
-			//{
-			//	UpdateEntityPolygonPathRotationCurrentFrame(entity.getId(), rot,
-			//												/*finished=*/wasPolyRotEdit && !isPolyRotEdit);
-			//}
-
-			// Outer Radius
-			static bool isPolyOuterRadiusEdit = false;
-			bool wasPolyOuterRadiusEdit = isPolyOuterRadiusEdit;
-			ImGui::Text("Outer Radius:");
-			ImGui::SameLine();
-			auto r = poly.outerRadius;
-			isPolyOuterRadiusEdit = ImGui::DragFloat("## Polygon outer radius", &r, 0.1f, 0.0f, 10000.0f, "%.1f");
-			if (isPolyOuterRadiusEdit || wasPolyOuterRadiusEdit)
-			{
-				UpdateEntityPolygonPathOuterRadiusCurrentFrame(
-					entity.getId(), r,
-					/*finished=*/wasPolyOuterRadiusEdit && !isPolyOuterRadiusEdit);
-			}
-
-			// Position
-			// static bool isPolyPosEdit = false;
-			// bool wasPolyPosEdit = isPolyPosEdit;
-			// ImGui::Text("Position:");
-			// ImGui::SameLine();
-			// auto pos = poly.position;
-			// isPolyPosEdit = ImGui::DragFloat2("## Polygon position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
-			// if (isPolyPosEdit || wasPolyPosEdit)
-			//{
-			//	UpdateEntityPolygonPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
-			//												/*finished=*/wasPolyPosEdit && !isPolyPosEdit);
-			//}
+			UpdateEntityPolygonPathPointsCurrentFrame(entity.getId(), idx, points,
+													  /*finished=*/wasPolyPointsEdit && !isPolyPointsEdit, false);
 		}
+
+		// Rotation
+		// static bool isPolyRotEdit = false;
+		// bool wasPolyRotEdit = isPolyRotEdit;
+		// ImGui::Text("Rotation:");
+		// ImGui::SameLine();
+		// auto rot = poly.rotation;
+		// isPolyRotEdit = ImGui::DragFloat("## Polygon rotation", &rot, 0.1f, -360.0f, 360.0f, "%.1f");
+		// if (isPolyRotEdit || wasPolyRotEdit)
+		//{
+		//	UpdateEntityPolygonPathRotationCurrentFrame(entity.getId(), rot,
+		//												/*finished=*/wasPolyRotEdit && !isPolyRotEdit);
+		//}
+
+		// Outer Radius
+		static bool isPolyOuterRadiusEdit = false;
+		bool wasPolyOuterRadiusEdit = isPolyOuterRadiusEdit;
+		ImGui::Text("Outer Radius:");
+		ImGui::SameLine();
+		auto r = path.outerRadius;
+		isPolyOuterRadiusEdit = ImGui::DragFloat("## Polygon outer radius", &r, 0.1f, 0.0f, 10000.0f, "%.1f");
+		if (isPolyOuterRadiusEdit || wasPolyOuterRadiusEdit)
+		{
+			UpdateEntityPolygonPathOuterRadiusCurrentFrame(
+				entity.getId(), idx, r,
+				/*finished=*/wasPolyOuterRadiusEdit && !isPolyOuterRadiusEdit, false);
+		}
+
+		// Position
+		// static bool isPolyPosEdit = false;
+		// bool wasPolyPosEdit = isPolyPosEdit;
+		// ImGui::Text("Position:");
+		// ImGui::SameLine();
+		// auto pos = poly.position;
+		// isPolyPosEdit = ImGui::DragFloat2("## Polygon position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
+		// if (isPolyPosEdit || wasPolyPosEdit)
+		//{
+		//	UpdateEntityPolygonPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
+		//												/*finished=*/wasPolyPosEdit && !isPolyPosEdit);
+		//}
 	}
 }
-void ImGuiCanvasView::drawStarPolygonComponent(core::Entity& entity)
+void ImGuiCanvasView::drawStarPolygonComponent(core::Entity& entity, core::StarPolygonPath& path, int idx)
 {
-	if (entity.hasComponent<core::StarPolygonPathComponent>())
+	if (ImGui::CollapsingHeader("Star Polygon Path"))
 	{
-		if (ImGui::CollapsingHeader("Star Polygon Path"))
+		// Points
+		static bool isStarPointsEdit = false;
+		bool wasStarPointsEdit = isStarPointsEdit;
+		ImGui::Text("Points:");
+		ImGui::SameLine();
+		int points = path.points;
+		isStarPointsEdit = ImGui::DragInt("## Star points", &points, 1, 3, 30);
+		if (isStarPointsEdit || wasStarPointsEdit)
 		{
-			auto& star = entity.getComponent<core::StarPolygonPathComponent>();
-
-			// Points
-			static bool isStarPointsEdit = false;
-			bool wasStarPointsEdit = isStarPointsEdit;
-			ImGui::Text("Points:");
-			ImGui::SameLine();
-			int points = star.points;
-			isStarPointsEdit = ImGui::DragInt("## Star points", &points, 1, 3, 30);
-			if (isStarPointsEdit || wasStarPointsEdit)
-			{
-				UpdateEntityStarPolygonPathPointsCurrentFrame(entity.getId(), points,
-															  /*finished=*/wasStarPointsEdit && !isStarPointsEdit);
-			}
-
-			// Rotation
-			// static bool isStarRotEdit = false;
-			// bool wasStarRotEdit = isStarRotEdit;
-			// ImGui::Text("Rotation:");
-			// ImGui::SameLine();
-			// auto rot = star.rotation;
-			// isStarRotEdit = ImGui::DragFloat("## Star rotation", &rot, 0.1f, -360.0f, 360.0f, "%.1f");
-			// if (isStarRotEdit || wasStarRotEdit)
-			//{
-			//	UpdateEntityStarPolygonPathRotationCurrentFrame(entity.getId(), rot,
-			//													/*finished=*/wasStarRotEdit && !isStarRotEdit);
-			//}
-
-			// Outer Radius
-			static bool isStarOuterRadiusEdit = false;
-			bool wasStarOuterRadiusEdit = isStarOuterRadiusEdit;
-			ImGui::Text("Outer Radius:");
-			ImGui::SameLine();
-			auto ro = star.outerRadius;
-			isStarOuterRadiusEdit = ImGui::DragFloat("## Star outer radius", &ro, 0.1f, 0.0f, 10000.0f, "%.1f");
-			if (isStarOuterRadiusEdit || wasStarOuterRadiusEdit)
-			{
-				UpdateEntityStarPolygonPathOuterRadiusCurrentFrame(
-					entity.getId(), ro,
-					/*finished=*/wasStarOuterRadiusEdit && !isStarOuterRadiusEdit);
-			}
-
-			// Inner Radius
-			static bool isStarInnerRadiusEdit = false;
-			bool wasStarInnerRadiusEdit = isStarInnerRadiusEdit;
-			ImGui::Text("Inner Radius:");
-			ImGui::SameLine();
-			auto ri = star.innerRadius;
-			isStarInnerRadiusEdit = ImGui::DragFloat("## Star inner radius", &ri, 0.1f, 0.0f, 10000.0f, "%.1f");
-			if (isStarInnerRadiusEdit || wasStarInnerRadiusEdit)
-			{
-				UpdateEntityStarPolygonPathInnerRadiusCurrentFrame(
-					entity.getId(), ri,
-					/*finished=*/wasStarInnerRadiusEdit && !isStarInnerRadiusEdit);
-			}
-
-			// Position
-			// static bool isStarPosEdit = false;
-			// bool wasStarPosEdit = isStarPosEdit;
-			// ImGui::Text("Position:");
-			// ImGui::SameLine();
-			// auto pos = star.position;
-			// isStarPosEdit = ImGui::DragFloat2("## Star position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
-			// if (isStarPosEdit || wasStarPosEdit)
-			//{
-			//	UpdateEntityStarPolygonPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
-			//													/*finished=*/wasStarPosEdit && !isStarPosEdit);
-			//}
+			UpdateEntityStarPolygonPathPointsCurrentFrame(entity.getId(), idx, points,
+														  /*finished=*/wasStarPointsEdit && !isStarPointsEdit, false);
 		}
+
+		// Rotation
+		// static bool isStarRotEdit = false;
+		// bool wasStarRotEdit = isStarRotEdit;
+		// ImGui::Text("Rotation:");
+		// ImGui::SameLine();
+		// auto rot = star.rotation;
+		// isStarRotEdit = ImGui::DragFloat("## Star rotation", &rot, 0.1f, -360.0f, 360.0f, "%.1f");
+		// if (isStarRotEdit || wasStarRotEdit)
+		//{
+		//	UpdateEntityStarPolygonPathRotationCurrentFrame(entity.getId(), rot,
+		//													/*finished=*/wasStarRotEdit && !isStarRotEdit);
+		//}
+
+		// Outer Radius
+		static bool isStarOuterRadiusEdit = false;
+		bool wasStarOuterRadiusEdit = isStarOuterRadiusEdit;
+		ImGui::Text("Outer Radius:");
+		ImGui::SameLine();
+		auto ro = path.outerRadius;
+		isStarOuterRadiusEdit = ImGui::DragFloat("## Star outer radius", &ro, 0.1f, 0.0f, 10000.0f, "%.1f");
+		if (isStarOuterRadiusEdit || wasStarOuterRadiusEdit)
+		{
+			UpdateEntityStarPolygonPathOuterRadiusCurrentFrame(
+				entity.getId(), idx, ro,
+				/*finished=*/wasStarOuterRadiusEdit && !isStarOuterRadiusEdit, false);
+		}
+
+		// Inner Radius
+		static bool isStarInnerRadiusEdit = false;
+		bool wasStarInnerRadiusEdit = isStarInnerRadiusEdit;
+		ImGui::Text("Inner Radius:");
+		ImGui::SameLine();
+		auto ri = path.innerRadius;
+		isStarInnerRadiusEdit = ImGui::DragFloat("## Star inner radius", &ri, 0.1f, 0.0f, 10000.0f, "%.1f");
+		if (isStarInnerRadiusEdit || wasStarInnerRadiusEdit)
+		{
+			UpdateEntityStarPolygonPathInnerRadiusCurrentFrame(
+				entity.getId(), idx, ri,
+				/*finished=*/wasStarInnerRadiusEdit && !isStarInnerRadiusEdit, false);
+		}
+
+		// Position
+		// static bool isStarPosEdit = false;
+		// bool wasStarPosEdit = isStarPosEdit;
+		// ImGui::Text("Position:");
+		// ImGui::SameLine();
+		// auto pos = star.position;
+		// isStarPosEdit = ImGui::DragFloat2("## Star position", &pos.x, 0.1f, -10000.0f, 10000.0f, "%.1f");
+		// if (isStarPosEdit || wasStarPosEdit)
+		//{
+		//	UpdateEntityStarPolygonPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
+		//													/*finished=*/wasStarPosEdit && !isStarPosEdit);
+		//}
 	}
 }
 

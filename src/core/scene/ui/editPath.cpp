@@ -385,12 +385,14 @@ void EditPath::initPreview()
 void EditPath::initPath()
 {
 	mPathPointUIs.clear();
-	auto& pathComponent = rTarget.getComponent<PathComponent>();
+	auto* pathComponent = rTarget.findPath<RawPath>();
+	if (pathComponent == nullptr)
+		return;
 	auto& transformComponent = rTarget.getComponent<TransformComponent>();
 	auto world = transformComponent.worldPosition;
-	rPathPoints = &pathComponent.path;
+	rPathPoints = &pathComponent->path;
 
-	for (auto& point : pathComponent.path)
+	for (auto& point : pathComponent->path)
 	{
 		addPathPointControl(point.localPosition + world);
 	}

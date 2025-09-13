@@ -17,27 +17,29 @@ Animator::~Animator()
 
 void Animator::play()
 {
-    mIsStop = false;
+	mIsStop = false;
 }
 void Animator::stop()
 {
-    mIsStop = true;
+	mIsStop = true;
+	mCurrentFrameNo = static_cast<uint32_t>(mCurrentFrameNo);
 }
 
 void Animator::update()
 {
-    if (mIsStop) return;
+	if (mIsStop)
+		return;
 
-    mCurrentFrameNo += io::deltaTime * mFps * mSpeed;
+	mCurrentFrameNo += io::deltaTime * mFps * mSpeed;
 
-    if (mSpeed < 0 && mCurrentFrameNo < 0.0f) 
-    {
-        mCurrentFrameNo = mMaxFrameNo;
-    }
-    else if(mSpeed > 0 && mCurrentFrameNo > mMaxFrameNo)
-    {
-        mCurrentFrameNo = mMinFrameNo;
-    }
+	if (mSpeed < 0 && mCurrentFrameNo < 0.0f)
+	{
+		mCurrentFrameNo = mMaxFrameNo;
+	}
+	else if (mSpeed > 0 && mCurrentFrameNo > mMaxFrameNo)
+	{
+		mCurrentFrameNo = mMinFrameNo;
+	}
 }
 
 }	 // namespace core

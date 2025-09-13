@@ -8,6 +8,9 @@
 #include <thorvg.h>
 #include <unordered_map>
 #include <array>
+#include <list>
+
+using reactive_storage = entt::reactive_mixin<entt::basic_storage<void>>;
 
 namespace core
 {
@@ -27,12 +30,13 @@ protected:
 	static std::unordered_map<uint32_t, Entity> gEntityMap;
 
 public:
-	Scene(bool isMainScene = false);
+	Scene(Scene* parentScene = nullptr);
 	~Scene();
 	entt::registry& getRegistry()
 	{
 		return mRegistry;
 	}
+	std::unique_ptr<Scene> createScene();
 	Entity createEntity(std::string_view name);
 	Entity createEllipseFillLayer(Vec2 minXy, Vec2 wh);
 	Entity createEllipseFillStrokeLayer(Vec2 minXy, Vec2 wh);
@@ -71,18 +75,22 @@ public:
 		return mTvgScene;
 	}
 
-	void onUpdate();
+	bool onUpdate();
+	void destroy();
 
 	uint32_t mId;
-	const bool mIsMainScene;
 
 protected:
 	friend class Entity;
 	friend class AnimationCreatorCanvas;
 	entt::registry mRegistry{};
 	std::vector<CanvasWrapper*> rCanvasList;
-	std::vector<Entity> mDrawOrder;
+	std::list<Entity> mDrawOrder;
 	tvg::Scene* mTvgScene;
+	std::unordered_set<entt::entity> mDeletedEntity;
+	reactive_storage mStorage;
+	bool mIsDirty{false};
+	Scene* mParentScene{nullptr};
 };
 
 }	 // namespace core

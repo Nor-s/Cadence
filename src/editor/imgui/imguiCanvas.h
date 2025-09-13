@@ -7,6 +7,11 @@ namespace core
 {
 class CanvasWrapper;
 class Entity;
+struct RawPath;
+struct RectPath;
+struct EllipsePath;
+struct PolygonPath;
+struct StarPolygonPath;
 }	 // namespace core
 
 namespace editor
@@ -25,10 +30,10 @@ private:
 	void drawAnimationCanvasProperties();
 
 	void drawComponent(core::Entity& entity);
-	void drawRectComponent(core::Entity& entity);
-	void drawElipseComponent(core::Entity& entity);
-	void drawPolygonComponent(core::Entity& entity);
-	void drawStarPolygonComponent(core::Entity& entity);
+	void drawRectComponent(core::Entity& entity, core::RectPath& path, int idx);
+	void drawEllipseComponent(core::Entity& entity, core::EllipsePath& path, int idx);
+	void drawPolygonComponent(core::Entity& entity, core::PolygonPath& path, int idx);
+	void drawStarPolygonComponent(core::Entity& entity, core::StarPolygonPath& path, int idx);
 };
 
 }	 // namespace editor

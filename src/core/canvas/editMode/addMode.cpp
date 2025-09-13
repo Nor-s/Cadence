@@ -70,16 +70,16 @@ bool AddMode::onEndLeftMouse(const InputValue& inputValue)
 		switch (mType)
 		{
 			case EditModeType::ADD_SQUARE:
-				CreateRectPathEntity(rCanvas->mScene->mId, start.x, start.y, wh.w, wh.h);
+				CreateRectPathEntity(rCanvas->mMainScene->mId, start.x, start.y, wh.w, wh.h);
 				break;
 			case EditModeType::ADD_ELLIPSE:
-				CreateElipsePathEntity(rCanvas->mScene->mId, start.x, start.y, wh.w, wh.h);
+				CreateElipsePathEntity(rCanvas->mMainScene->mId, start.x, start.y, wh.w, wh.h);
 				break;
 			case EditModeType::ADD_POLYGON:
-				CreatePolygonPathEntity(rCanvas->mScene->mId, start.x, start.y, wh.w, wh.h);
+				CreatePolygonPathEntity(rCanvas->mMainScene->mId, start.x, start.y, wh.w, wh.h);
 				break;
 			default:
-				CreateStarPathEntity(rCanvas->mScene->mId, start.x, start.y, wh.x, wh.h);
+				CreateStarPathEntity(rCanvas->mMainScene->mId, start.x, start.y, wh.x, wh.h);
 				break;
 		};
 	}

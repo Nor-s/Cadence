@@ -34,9 +34,12 @@ public:
 		memcpy(mClearColor, color, 3 * sizeof(float));
 	}
 
-	virtual void onInit() {};
+	virtual void onInit(){};
 	virtual void onUpdate();
-	virtual void onResize() {};
+	virtual void onDestroy()
+	{
+	}
+	virtual void onResize(){};
 	virtual CanvasType type()
 	{
 		return CanvasType::Base;
@@ -45,6 +48,7 @@ public:
 	void draw();
 	void resize(Size size);
 	void update();
+	void setDirty(bool dirty);
 	uint32_t getTexture();
 
 	tvg::Canvas* getCanvas()
@@ -94,6 +98,8 @@ protected:
 	// imported image, svg, lottie..
 	std::vector<std::unique_ptr<PaintWrapper>> mPaints;
 	std::vector<std::unique_ptr<AnimationWrapper>> mAnimations;
+
+	bool mIsDirty{false};
 };
 
 }	 // namespace core

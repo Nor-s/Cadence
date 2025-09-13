@@ -33,7 +33,7 @@ bool PickMode::onDoubleClickLeftMouse(const InputValue& inputValue)
 {
 	auto pos = inputValue.get<Vec2>();
 	mContext.pickInfo.currentSelectedPaint = nullptr;
-	bool isPick = Pick(rCanvas->getCanvas(), mContext.pickInfo, pos);
+	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), mContext.pickInfo, pos);
 	bool isNeedReset = false;
 	if (isPick && mContext.pickInfo.currentSelectedPaint && mContext.pickInfo.currentSelectedScene)
 	{
@@ -67,7 +67,7 @@ bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 	mContext.startPoint = inputValue.get<Vec2>();
 	mContext.beforePoint = mContext.startPoint;
 
-	bool isPick = Pick(rCanvas->getCanvas(), mContext.pickInfo, mContext.startPoint);
+	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), mContext.pickInfo, mContext.startPoint);
 
 	if (isPick && mContext.pickInfo.currentSelectedScene)
 	{
@@ -126,7 +126,7 @@ bool PickMode::onMoveMouse(const InputValue& inputValue)
 	}
 	PickInfo pickInfo;
 
-	bool isPick = Pick(rCanvas->getCanvas(), pickInfo, inputValue.get<Vec2>());
+	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), pickInfo, inputValue.get<Vec2>());
 	if (isPick)
 	{
 		std::array<Vec2, 4> points = GetObb(pickInfo.currentSelectedPaint);

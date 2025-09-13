@@ -24,10 +24,11 @@ public:
 	InputController* getInputController() override;
 
 	void onUpdate() override;
+	void onDestroy() override;
 
+	std::unique_ptr<core::Scene> mCanvasScene;
 	std::unique_ptr<core::Animator> mAnimator;
-	std::unique_ptr<core::Scene> mScene;
-	std::unique_ptr<core::Scene> mOverlayScene;
+	std::unique_ptr<core::Scene> mMainScene;
 	std::unique_ptr<core::Scene> mControlScene;
 	std::unique_ptr<AnimationCreatorInputController> mInputController;
 };

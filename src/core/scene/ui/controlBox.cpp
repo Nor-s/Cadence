@@ -79,7 +79,7 @@ UIShape::UIShape(Scene* scene, PathPoint start, PathPoint end, const Attribute& 
 	}
 
 	init();
-	mEntity.updateShapeAtt();
+	mEntity.update();
 }
 
 UIShape::UIShape(Scene* scene, Vec2 center, float w, const Attribute& att) : UIShape(scene, center, Vec2(w, w), att)
@@ -96,7 +96,7 @@ UIShape::UIShape(Scene* scene, const std::array<Vec2, 4>& obbPoints, const Attri
 	mEntity = rScene->createObb(obbPoints);
 
 	init();
-	mEntity.updateShapeAtt();
+	mEntity.update();
 }
 
 UIShape::~UIShape()
@@ -212,17 +212,17 @@ bool UIShape::onMoveMouse(const Vec2& xy)
 
 void UIShape::updatePath(PathPoints pathPoints)
 {
-	if (mEntity.hasComponent<PathComponent>() && pathPoints.size() > 0)
+	auto* path = mEntity.findPath<RawPath>();
+	if (path && pathPoints.size() > 0)
 	{
 		if (pathPoints[0].type != PathPoint::Command::MoveTo)
 		{
 			pathPoints.insert(pathPoints.begin(), pathPoints[0]);
 			pathPoints.begin()->type = PathPoint::Command::MoveTo;
 		}
-		auto& pathComponent = mEntity.getComponent<PathComponent>();
-		pathComponent.path = pathPoints;
+		path->path = pathPoints;
 		init();
-		Update(mEntity.getComponent<ShapeComponent>(), pathComponent);
+		Update(mEntity.getComponent<ShapeComponent>(), *path);
 	}
 }
 

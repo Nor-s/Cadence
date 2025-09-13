@@ -99,4 +99,9 @@ void App::drawend()
 {
 	mImguiManager->drawend();
 	mWindow->drawend();
+
+	for (auto& canvas : mCanvasList)
+	{
+		canvas->onDestroy();
+	}
 }

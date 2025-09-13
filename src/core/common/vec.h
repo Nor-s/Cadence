@@ -114,6 +114,14 @@ struct Vector3
 	{
 		return x;
 	}
+	bool operator==(const Vector3& rhs)
+	{
+		return x == rhs.x && y == rhs.y && z == rhs.z;
+	}
+	bool operator!=(const Vector3& rhs)
+	{
+		return !(*this == rhs);
+	}
 };
 
 template <typename T>
@@ -328,7 +336,10 @@ inline static float ToDegree(float radian)
 {
 	return radian * (180.0f / static_cast<float>(KPI));
 }
-
+inline static int lerp(int a, int b, float t)
+{
+	return static_cast<int>(a + (b - a) * t);
+}
 inline static float lerp(float a, float b, float t)
 {
 	return a + (b - a) * t;

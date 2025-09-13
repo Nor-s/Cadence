@@ -43,6 +43,15 @@ void Entity::show()
 		mIsHide = false;
 	}
 }
+void Entity::setDirty(Dirty::Type dirtyType)
+{
+	auto& dirty = getComponent<Dirty>();
+
+	rScene->mRegistry.patch<Dirty>(mHandle);
+
+	dirty.mask = dirty | dirtyType;
+	rScene->mIsDirty = true;
+}
 void Entity::update()
 {
 	updateTransform();
@@ -59,11 +68,34 @@ void Entity::updateShapePath()
 
 	Reset(shape);
 
-	bool isShapeUpdate = UpdateShape<PathComponent>(*this, shape) || UpdateShape<ElipsePathComponent>(*this, shape) ||
-						 UpdateShape<RectPathComponent>(*this, shape) ||
-						 UpdateShape<PolygonPathComponent>(*this, shape) ||
-						 UpdateShape<StarPolygonPathComponent>(*this, shape);
-	assert(isShapeUpdate);
+	if (hasComponent<PathListComponent>())
+	{
+		auto& pathList = getComponent<PathListComponent>();
+		for (auto& path : pathList.paths)
+		{
+			path->appendTo(shape);
+		}
+	}
+}
+
+bool Entity::updateShapePath(float keyframeNo)
+{
+	if (hasComponent<ShapeComponent>() == false)
+		return false;
+
+	auto& shape = getComponent<ShapeComponent>();
+
+	bool isChanged = false;
+	if (hasComponent<PathListComponent>())
+	{
+		auto& pathList = getComponent<PathListComponent>();
+		for (auto& path : pathList.paths)
+		{
+			isChanged |= path->update(keyframeNo);
+			path->appendTo(shape);
+		}
+	}
+	return isChanged;
 }
 
 void Entity::updateShapeAtt()

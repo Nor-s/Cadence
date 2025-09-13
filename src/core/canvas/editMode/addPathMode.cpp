@@ -19,7 +19,7 @@ AddPathMode::~AddPathMode()
 {
 	if (!mTargetPath.isNull())
 	{
-		rCanvas->mScene->destroyEntity(mTargetPath);
+		rCanvas->mMainScene->destroyEntity(mTargetPath);
 	}
 }
 
@@ -31,8 +31,8 @@ bool AddPathMode::onStarClickLefttMouse(const InputValue& inputValue)
 	{
 		PathPoints pathPoints;
 		pathPoints.push_back(PathPoint{.localPosition = start, .type = PathPoint::Command::MoveTo});
-		mTargetPath = rCanvas->mScene->createPathLayer(pathPoints);
-		mEditPath = std::make_unique<EditPath>(rCanvas->mOverlayScene.get(), mTargetPath, true);
+		mTargetPath = rCanvas->mMainScene->createPathLayer(pathPoints);
+		mEditPath = std::make_unique<EditPath>(rCanvas->mControlScene.get(), mTargetPath, true);
 	}
 	return mEditPath->onStartClickLeftMouse(inputValue);
 }
@@ -61,7 +61,9 @@ bool AddPathMode::onEndLeftMouse(const InputValue& inputValue)
 	if (mEditPath->onEndLeftMouse(inputValue))
 	{
 		// mTargetPath is Delete when Change Edit Mode
-		Resolve(mTargetPath.getComponent<TransformComponent>(), mTargetPath.getComponent<PathComponent>());
+		auto* rawPath = static_cast<RawPath*>(mTargetPath.getComponent<PathListComponent>().paths[0].get());
+		Resolve(mTargetPath.getComponent<TransformComponent>(), *rawPath);
+		mTargetPath.setDirty(Dirty::Type::Transform);
 		mTargetPath = Entity();
 		return true;
 	}
