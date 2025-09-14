@@ -1,4 +1,4 @@
-project('thorvg_sandbox', 'cpp',
+project('cadence', 'cpp',
     default_options:['cpp_std=c++20']
 )
 
@@ -93,7 +93,7 @@ tvg_sandbox_src =[
 tvg_sandbox_inc = include_directories('src', tvg_config_path)
 
 # Define Lib
-executable('thorvg_sandbox', 
+executable('cadence', 
     tvg_sandbox_src,
     dependencies: dep_list,
     link_args: wasm_link_args,
