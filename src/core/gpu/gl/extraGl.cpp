@@ -51,9 +51,10 @@ static PROC _getProcAddress(const char* procName)
 		procHandle = glGetProcAddress(procName);
 	return procHandle;
 }
-#endif
+// #endif
 
-#ifdef defined(__APPLE__) || defined(__MACH__)
+// #ifdef defined(__APPLE__) || defined(__MACH__)
+#else
 #include <dlfcn.h>
 static void* _libGL = nullptr;
 

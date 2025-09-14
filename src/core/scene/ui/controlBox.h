@@ -100,32 +100,41 @@ public:
 	struct StateAttribute
 	{
 		// -1 is default setting
-		Vec3 fillColor{-1.0f, -1.0f, -1.0f};
-		float fillAlpha = -1.0f;
-		Vec3 strokeColor{-1.0f, -1.0f, -1.0f};
-		float strokeAlpha = -1.0f;
-		float strokeWidth = -1.0f;
+		Vec3 fillColor;
+		float fillAlpha;
+		Vec3 strokeColor;
+		float strokeAlpha;
+		float strokeWidth ;
 		// Vec2 scale{1.0f, 1.0f};
+		StateAttribute() : fillColor(-1.0f, -1.0f, -1.0f), fillAlpha(-1.0f), strokeColor(-1.0f, -1.0f, -1.0f),
+						   strokeAlpha(-1.0f), strokeWidth(-1.0f)
+		{
+		}
 	};
 
 	struct Attribute
 	{
-		CursorType cursorType{CursorType::Click};
-		ShapeType shapeType{ShapeType::Rect};
-		ShapeAttribute shapeAtt{ShapeAttribute::FillStroke};
+		CursorType cursorType;
+		ShapeType shapeType ;
+		ShapeAttribute shapeAtt ;
 
-		float animationTime{0.1f};
-		StateAttribute normal{};
-		StateAttribute hovered{};
-		StateAttribute pressed{};
+		float animationTime;
+		StateAttribute normal;
+		StateAttribute hovered;
+		StateAttribute pressed;
+		Attribute()
+			: cursorType(CursorType::Click), shapeType(ShapeType::Rect), shapeAtt(ShapeAttribute::FillStroke), 
+			  animationTime(0.1f), normal(), hovered(), pressed()
+		{
+		}
 	};
 
 public:
 	// todo: add input controller
-	UIShape(Scene* scene, Vec2 center, float w, const Attribute& attribute = {});
-	UIShape(Scene* scene, Vec2 center, Vec2 wh, const Attribute& attribute = {});
-	UIShape(Scene* scene, PathPoint start, PathPoint end, const Attribute& attribute = {});
-	UIShape(Scene* scene, const std::array<Vec2, 4>& obbPoints, const Attribute& attribute = {});
+	UIShape(Scene* scene, Vec2 center, float w, const Attribute& attribute = Attribute());
+	UIShape(Scene* scene, Vec2 center, Vec2 wh, const Attribute& attribute = Attribute());
+	UIShape(Scene* scene, PathPoint start, PathPoint end, const Attribute& attribute = Attribute());
+	UIShape(Scene* scene, const std::array<Vec2, 4>& obbPoints, const Attribute& attribute = Attribute());
 	~UIShape();
 
 	void moveTo(const Vec2& xy);
@@ -168,7 +177,7 @@ private:
 	std::unique_ptr<IFunction> mOnUpdate;
 	std::array<Vec2, 4> mObbPoints;
 	State mState{State::Normal};
-	Attribute mAtt{};
+	Attribute mAtt;
 
 	Vec3 mCurrentFillColor;
 	float mCurrentFillAlpha;

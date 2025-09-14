@@ -10,6 +10,7 @@ class ImGuiWindow
 {
 public:
 	ImGuiWindow(const std::string& name);
+	virtual ~ImGuiWindow() = default;
 
 	virtual void draw();
 	virtual void content() = 0;

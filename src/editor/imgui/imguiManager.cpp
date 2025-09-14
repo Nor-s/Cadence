@@ -27,9 +27,7 @@ ImGuiManager::ImGuiManager()
 	ImGui::LoadInternalIcons(io.Fonts);
 }
 
-ImGuiManager::~ImGuiManager()
-{
-}
+ImGuiManager::~ImGuiManager() = default;
 
 void ImGuiManager::update()
 {

@@ -311,6 +311,7 @@ void UIShape::init()
 		{
 			auto& shape = mEntity.getComponent<ShapeComponent>();
 			mObbPoints = GetObb(shape.shape);
+			break;
 		}
 	}
 }
