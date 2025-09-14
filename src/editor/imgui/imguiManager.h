@@ -2,6 +2,7 @@
 #define _EDITOR_IMGUI_IMGUI_MANAGER_H_
 
 #include <vector>
+#include <memory>
 
 namespace core
 {
@@ -25,6 +26,9 @@ private:
 	void init();
 	void drawDocSpace();
 	void drawDocMenuBar();
+
+private:
+	std::vector<std::unique_ptr<class ImGuiWindow>> mWindows;
 };
 
 }	 // namespace editor

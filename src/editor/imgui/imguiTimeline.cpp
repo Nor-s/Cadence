@@ -22,10 +22,10 @@ void ImguiTimeline::draw(core::AnimationCreatorCanvas* canvas)
 	{
 		mWindowFlags |= ImGuiWindowFlags_NoScrollWithMouse;
 	}
-	
+
 	ImGui::Begin(ICON_MD_SCHEDULE " Animation", 0, mWindowFlags);
 	{
-			drawSequencer();
+		drawSequencer();
 	}
 	ImGui::End();
 }
@@ -45,7 +45,7 @@ void ImguiTimeline::drawSequencer()
 	uint32_t end = static_cast<uint32_t>(animator->mMaxFrameNo);
 	uint32_t before = current;
 
-	if (ImGui::Button("play"))
+	if (ImGui::Button("Play"))
 	{
 		animator->play();
 	}

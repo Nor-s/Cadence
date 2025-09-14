@@ -489,6 +489,15 @@ static bool RemoveShape(Entity& entity)
 	return false;
 }
 
+template <typename TComponent, typename Function, typename... Args>
+static void CallIfHas(const core::Entity& e, Function f, Args&&... args)
+{
+	if (e.hasComponent<TComponent>())
+	{
+		f(std::forward<Args>(args)...);
+	}
+}
+
 }	 // namespace core
 
 #endif

@@ -78,6 +78,8 @@ public:
 	bool onUpdate();
 	void destroy();
 
+	const std::list<Entity>& getDrawOrder();
+
 	uint32_t mId;
 	Entity mSceneEntity;
 

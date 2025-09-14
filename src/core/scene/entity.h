@@ -81,7 +81,7 @@ public:
 	void updateShapeAtt();
 
 	template <class T>
-	T& getComponent();
+	T& getComponent() const;
 
 	template <class T, typename... Args>
 	T& getOrAddComponent(Args&&... args);
@@ -90,7 +90,7 @@ public:
 	T& addComponent(Args&&... args);
 
 	template <typename T>
-	bool hasComponent();
+	bool hasComponent() const;
 
 	template <typename T>
 	void removeComponent();
@@ -100,6 +100,9 @@ public:
 
 	template <typename T, typename... Args>
 	bool tryAddComponent(Args&&... args);
+
+	template <class T>
+	const T* const tryGetComponent() const;
 
 	template <typename T>
 	T* findPath(int startIdx = 0);

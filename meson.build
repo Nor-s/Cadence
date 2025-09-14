@@ -3,7 +3,7 @@ project('thorvg_sandbox', 'cpp',
 )
 
 platform = get_option('platform')
-
+buildtype = get_option('buildtype')
 src_dir = '/'.join(meson.current_source_dir().split('\\'))
 
 if platform == 'web'
@@ -25,15 +25,21 @@ if platform == 'web'
 else
     add_project_arguments('-DRESOURCE_DIR="@0@/resources"'.format(src_dir),
                       language : 'cpp')
-    tvg_config_path = 'build/native/subprojects/thorvg'
     wasm_link_args = []
     if host_machine.system() == 'windows'
+        if buildtype == 'release'
+            tvg_config_path = 'build/win/release'
+        else
+            tvg_config_path = 'build/win/debug'
+        endif
+
         add_project_arguments('-DNOMINMAX', language: 'cpp')
         if meson.get_compiler('cpp').get_id() == 'msvc'
             add_project_arguments('/utf-8', language : 'cpp')
         endif
         tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=false', 'loaders=all','savers=all', 'extra=' ])
     else
+        tvg_config_path = 'build/native/subprojects/thorvg'
         tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=false', 'loaders=all','savers=all', 'extra=lottie_expressions' ])
     endif
 endif

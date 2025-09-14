@@ -14,8 +14,8 @@ source_file = [
     'imgui/imguiTimeline.cpp',
 
 
-    'imgui/imguiComponent.cpp',
-    'imgui/imguiComponent.h',
+    'imgui/imguiWindow.cpp',
+    'imgui/imguiWindow.h',
     'imgui/imguiManager.h',
     'imgui/imguiManager.cpp',
     'imgui/imguiSceneHierarchy.cpp',

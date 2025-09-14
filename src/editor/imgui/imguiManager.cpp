@@ -4,6 +4,8 @@
 #include "imgui/imguiCanvas.h"
 #include "imgui/imguiShapePanel.h"
 #include "imgui/imguiContentBrowser.h"
+#include "imgui/imguiWindow.h"
+#include "imgui/imguiSceneHierarchy.h"
 
 #include <string>
 #include <core/core.h>
@@ -39,10 +41,16 @@ void ImGuiManager::draw()
 	ImGuiCanvasView().onDrawSceneInspect();
 	ImGuiCanvasView().onDrawContentBrowser();
 	ImguiContentBrowser().draw();
+
+	for (auto& window : mWindows)
+	{
+		window->draw();
+	}
 }
 
 void ImGuiManager::init()
 {
+	mWindows.push_back(std::make_unique<ImGuiSceneHierarchy>());
 }
 
 void ImGuiManager::drawDocSpace()

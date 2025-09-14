@@ -177,7 +177,7 @@ Entity Scene::createRectFillStrokeLayer(Vec2 minXy, Vec2 wh)
 
 Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 {
-	auto entity = CreateEntity(this, "polygon", mSceneEntity);
+	auto entity = CreateEntity(this, "Polygon Layer", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -218,7 +218,7 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	{
 		wh.w = wh.h = 1.0f;
 	}
-	auto entity = CreateEntity(this, "Star", mSceneEntity);
+	auto entity = CreateEntity(this, "Star Layer", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -251,7 +251,7 @@ Entity Scene::createPathLayer(PathPoints path)
 {
 	assert(path.empty() == false);
 
-	auto entity = CreateEntity(this, "path", mSceneEntity);
+	auto entity = CreateEntity(this, "Path Layer", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -564,4 +564,10 @@ void Scene::destroy()
 	// todo: refactor [create - reference - update - destroy] ... life cycle
 	mRegistry.view<DestroyState>().each([this](auto entity, DestroyState& destroy) { mRegistry.destroy(entity); });
 }
+
+const std::list<Entity>& Scene::getDrawOrder()
+{
+	return mDrawOrder;
+}
+
 }	 // namespace core

@@ -5,7 +5,7 @@ namespace core
 {
 
 template <class T>
-T& Entity::getComponent()
+T& Entity::getComponent() const
 {
 	assert(hasComponent<T>());
 	return rScene->mRegistry.get<T>(mHandle);
@@ -29,7 +29,7 @@ T& Entity::addComponent(Args&&... args)
 }
 
 template <typename T>
-bool Entity::hasComponent()
+bool Entity::hasComponent() const
 {
 	assert(mHandle != entt::null);
 	return rScene->mRegistry.try_get<T>(mHandle) != nullptr;
@@ -63,6 +63,16 @@ bool Entity::tryAddComponent(Args&&... args)
 		return true;
 	}
 	return false;
+}
+
+template <class T>
+inline const T* const Entity::tryGetComponent() const
+{
+	if (hasComponent<T>())
+	{
+		return &getComponent<T>();
+	}
+	return nullptr;
 }
 
 template <typename T>
