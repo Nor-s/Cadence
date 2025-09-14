@@ -16,11 +16,25 @@ Entity::Entity(Scene* scene)
 	rScene = scene;
 	mHandle = scene->mRegistry.create();
 }
+void Entity::setScaleByDelta(const Vec2& scaleDelta)
+{
+	auto& transform = getComponent<TransformComponent>();
+	transform.scale = transform.scale + scaleDelta;
+	setDirty(Dirty::Type::Transform);
+}
 void Entity::moveByDelta(const Vec2& delta)
 {
 	auto& transform = getComponent<TransformComponent>();
 	transform.localPosition = transform.localPosition + delta;
+	setDirty(Dirty::Type::Transform);
 }
+void Entity::move(const Vec2& pos)
+{
+	auto& transform = getComponent<TransformComponent>();
+	transform.localPosition = pos;
+	setDirty(Dirty::Type::Transform);
+}
+
 void Entity::hide()
 {
 	if (mHandle == entt::null || mIsHide == true || hasComponent<ShapeComponent>() == false)
@@ -121,6 +135,7 @@ void Entity::updateTransform()
 		auto& shape = getComponent<ShapeComponent>();
 		UpdateShape<TransformComponent>(*this, shape);
 	}
+	getComponent<WorldTransformComponent>().update();
 }
 
 const EntityID Entity::getId()

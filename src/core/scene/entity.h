@@ -63,7 +63,9 @@ public:
 	Entity(Scene* scene);
 	virtual ~Entity() = default;
 
+	void setScaleByDelta(const Vec2& delta);
 	void moveByDelta(const Vec2& delta);
+	void move(const Vec2& pos);
 	void hide();
 	void show();
 	bool isHidden() const

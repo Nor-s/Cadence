@@ -34,6 +34,14 @@ AnimationCreatorInputController::AnimationCreatorInputController(AnimationCreato
 	mHandle->bindAction(InputAction(InputType::MOUSE_MOVE), InputTrigger::Triggered, this, &ThisClass::onMoveMouse);
 	mHandle->bindAction(InputAction(InputType::INPUT_DETACH), InputTrigger::Triggered, this, &ThisClass::onInputDetach);
 	mHandle->bindAction(InputAction(InputType::INPUT_ATTACH), InputTrigger::Triggered, this, &ThisClass::onInputAttach);
+	mHandle->bindAction(InputAction(InputType::MOUSE_WHEEL), InputTrigger::Triggered, this, &ThisClass::onInputWheel);
+
+	mHandle->bindAction(InputAction(InputType::MOUSE_MIDDLE_DOWN), InputTrigger::Started, this,
+						&ThisClass::onStartMoveCanvas);
+	mHandle->bindAction(InputAction(InputType::MOUSE_MIDDLE_DOWN), InputTrigger::Triggered, this,
+						&ThisClass::onMoveCanvas);
+	mHandle->bindAction(InputAction(InputType::MOUSE_MIDDLE_DOWN), InputTrigger::Ended, this,
+						&ThisClass::onEndMoveCanvas);
 	setMode(EditModeType::PICK);
 }
 
@@ -126,6 +134,32 @@ bool AnimationCreatorInputController::onInputAttach(const InputValue& inputValue
 		applyEditMode();
 
 	return true;
+}
+
+bool AnimationCreatorInputController::onInputWheel(const InputValue& inputValue)
+{
+	auto v = inputValue.get<Vec2>();
+	rCanvas->mCanvasScene->mSceneEntity.setScaleByDelta(Vec2{v.y, v.y} * 0.01f);
+	return false;
+}
+
+bool AnimationCreatorInputController::onStartMoveCanvas(const InputValue& inputValue)
+{
+	return false;
+}
+
+bool AnimationCreatorInputController::onMoveCanvas(const InputValue& inputValue)
+{
+	auto delta = inputValue.getDelta<Vec2>();
+	rCanvas->mCanvasScene->mSceneEntity.moveByDelta(delta);
+
+	LOG_INFO("{} {}", delta.x, delta.y);
+	return false;
+}
+
+bool AnimationCreatorInputController::onEndMoveCanvas(const InputValue& inputValue)
+{
+	return false;
 }
 
 // todo: no reset unique_ptr

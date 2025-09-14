@@ -151,4 +151,8 @@ InputController* CanvasWrapper::getInputController()
 	return nullptr;
 }
 
+void CanvasWrapper::moveCamera(Vec2 xy)
+{
+}
+
 }	 // namespace core

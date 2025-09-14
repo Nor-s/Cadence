@@ -85,9 +85,9 @@ bool EditPath::onDragLeftMouse(const InputValue& inputValue)
 				mCurrentEditType == PathPoint::Command::CubicTo)
 			{
 				mCurrentEditType = PathPoint::Command::CubicTo;
-				auto& transform = rTarget.getComponent<TransformComponent>();
-				auto localStart = mStartPoint * transform.inverse();
-				auto localCurrent = mCurrentPoint * transform.inverse();
+				auto& transform = rTarget.getComponent<WorldTransformComponent>();
+				auto localStart = mStartPoint * transform.inverseWorldTransform;
+				auto localCurrent = mCurrentPoint * transform.inverseWorldTransform;
 				auto localDelta = localCurrent - localStart;
 
 				auto& point = rPathPoints->at(mCurrentPointIndex);
@@ -201,9 +201,9 @@ void EditPath::initControlPoint()
 		mLeftControlUI->setOnLeftDrag(MakeLambda(
 			[this]()
 			{
-				auto& transform = rTarget.getComponent<TransformComponent>();
-				auto localCurrent = mCurrentPoint * transform.inverse();
-				auto localBefore = mBeforePoint * transform.inverse();
+				auto& transform = rTarget.getComponent<WorldTransformComponent>();
+				auto localCurrent = mCurrentPoint * transform.inverseWorldTransform;
+				auto localBefore = mBeforePoint * transform.inverseWorldTransform;
 				auto localDelta = (localCurrent - localBefore);
 				auto delta = (mCurrentPoint - mBeforePoint);
 				auto& point = rPathPoints->at(mCurrentPointIndex);
@@ -227,9 +227,9 @@ void EditPath::initControlPoint()
 		mRightControlUI->setOnLeftDrag(MakeLambda(
 			[this]()
 			{
-				auto& transform = rTarget.getComponent<TransformComponent>();
-				auto localCurrent = mCurrentPoint * transform.inverse();
-				auto localBefore = mBeforePoint * transform.inverse();
+				auto& transform = rTarget.getComponent<WorldTransformComponent>();
+				auto localCurrent = mCurrentPoint * transform.inverseWorldTransform;
+				auto localBefore = mBeforePoint * transform.inverseWorldTransform;
 				auto localDelta = (localCurrent - localBefore);
 				auto delta = (mCurrentPoint - mBeforePoint);
 				auto& point = rPathPoints->at(mCurrentPointIndex);
@@ -265,9 +265,9 @@ void EditPath::addPathPointControl(const Vec2& worldPosition)
 	mPathPointUIs.back()->setOnLeftDrag(MakeLambda(
 		[this, idx = mPathPointUIs.size() - 1]()
 		{
-			auto& transform = rTarget.getComponent<TransformComponent>();
-			auto localCurrent = mCurrentPoint * transform.inverse();
-			auto localBefore = mBeforePoint * transform.inverse();
+			auto& transform = rTarget.getComponent<WorldTransformComponent>();
+			auto localCurrent = mCurrentPoint * transform.inverseWorldTransform;
+			auto localBefore = mBeforePoint * transform.inverseWorldTransform;
 
 			auto localDelta = localCurrent - localBefore;
 			auto delta = (mCurrentPoint - mBeforePoint);
@@ -281,8 +281,8 @@ void EditPath::addPathPointControl(const Vec2& worldPosition)
 }
 void EditPath::addPathPoint(const Vec2& worldPoisition)
 {
-	auto& transform = rTarget.getComponent<TransformComponent>();
-	auto localPosition = worldPoisition * transform.inverse();
+	auto& transform = rTarget.getComponent<WorldTransformComponent>();
+	auto localPosition = worldPoisition * transform.inverseWorldTransform;
 	rPathPoints->push_back(PathPoint{.localPosition = localPosition, .type = mCurrentEditType});
 	addPathPointControl(worldPoisition);
 }
@@ -323,7 +323,7 @@ void EditPath::updateControlPoint()
 	auto& point = rPathPoints->at(mCurrentPointIndex);
 	if (point.type == PathPoint::Command::CubicTo)
 	{
-		auto& transform = rTarget.getComponent<TransformComponent>();
+		auto& transform = rTarget.getComponent<WorldTransformComponent>();
 		auto worldPos = point.localPosition * transform.worldTransform;
 		auto leftWorldPos = (point.localPosition + point.deltaLeftControlPosition) * transform.worldTransform;
 		auto rightWorldPos = (point.localPosition + point.deltaRightControlPosition) * transform.worldTransform;
@@ -351,7 +351,7 @@ void EditPath::updatePreview(const Vec2& endPoint)
 	if (mCurrentPointIndex == (rPathPoints->size() - 1) && rCurrentUi == mPathPointUIs.back().get())
 	{
 		PathPoints pathPoints;
-		auto world = rTarget.getComponent<TransformComponent>().worldTransform;
+		auto world = rTarget.getComponent<WorldTransformComponent>().worldTransform;
 		auto& point = rPathPoints->back();
 		auto beforeWorld = point.localPosition * world;
 		auto beforeLeftWorld = (point.localPosition + point.deltaLeftControlPosition) * world - beforeWorld;
@@ -388,7 +388,7 @@ void EditPath::initPath()
 	auto* pathComponent = rTarget.findPath<RawPath>();
 	if (pathComponent == nullptr)
 		return;
-	auto& transformComponent = rTarget.getComponent<TransformComponent>();
+	auto& transformComponent = rTarget.getComponent<WorldTransformComponent>();
 	auto world = transformComponent.worldPosition;
 	rPathPoints = &pathComponent->path;
 

@@ -33,9 +33,9 @@ bool PickMode::onDoubleClickLeftMouse(const InputValue& inputValue)
 {
 	auto pos = inputValue.get<Vec2>();
 	mContext.pickInfo.currentSelectedPaint = nullptr;
-	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), mContext.pickInfo, pos);
+	bool isPick = Pick(rCanvas->mMainScene->getScene(), mContext.pickInfo, pos);
 	bool isNeedReset = false;
-	if (isPick && mContext.pickInfo.currentSelectedPaint && mContext.pickInfo.currentSelectedScene)
+	if (isPick && mContext.pickInfo.type == PickInfo::Type::Shape)
 	{
 		if (mContext.bbox)
 		{
@@ -45,13 +45,13 @@ bool PickMode::onDoubleClickLeftMouse(const InputValue& inputValue)
 			mContext.pickInfo.excludeIds.insert(targetId);
 			return true;
 		}
-		isNeedReset = true;
 	}
 	else if (mContext.bbox)
 	{
 		mContext.bbox->retarget(Entity());
 	}
-	if (isNeedReset)
+
+	// reset pickInfo
 	{
 		mContext.pickInfo.currentSelectedPaint = nullptr;
 		mContext.pickInfo.currentSelectedScene = nullptr;
@@ -67,9 +67,9 @@ bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 	mContext.startPoint = inputValue.get<Vec2>();
 	mContext.beforePoint = mContext.startPoint;
 
-	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), mContext.pickInfo, mContext.startPoint);
+	bool isPick = Pick(rCanvas->mMainScene->getScene(), mContext.pickInfo, mContext.startPoint);
 
-	if (isPick && mContext.pickInfo.currentSelectedScene)
+	if (isPick && mContext.pickInfo.type == PickInfo::Type::Shape)
 	{
 		auto targetEntity =
 			mContext.pickInfo.currentSelectedScene->getEntityById(mContext.pickInfo.currentSelectedPaint->id);
@@ -98,7 +98,6 @@ bool PickMode::onStarClickLefttMouse(const InputValue& inputValue)
 		}
 		mContext.pickInfo.currentSelectedPaint = nullptr;
 		mContext.pickInfo.currentSelectedScene = nullptr;
-		mContext.pickInfo.excludeIds.clear();
 	}
 	return true;
 }
@@ -126,8 +125,8 @@ bool PickMode::onMoveMouse(const InputValue& inputValue)
 	}
 	PickInfo pickInfo;
 
-	bool isPick = Pick(rCanvas->mCanvasScene->getScene(), pickInfo, inputValue.get<Vec2>());
-	if (isPick)
+	bool isPick = Pick(rCanvas->mMainScene->getScene(), pickInfo, inputValue.get<Vec2>());
+	if (isPick && pickInfo.type == PickInfo::Type::Shape)
 	{
 		std::array<Vec2, 4> points = GetObb(pickInfo.currentSelectedPaint);
 		mContext.hover = rCanvas->mControlScene->createObb(points);

@@ -48,9 +48,16 @@ static Vec2 GetCenter(const std::array<Vec2, 4>& q)
 
 struct PickInfo
 {
+	enum class Type
+	{
+		None,
+		Scene,
+		Shape
+	};
 	std::unordered_set<uint32_t> excludeIds;
 	core::Scene* currentSelectedScene{nullptr};
 	tvg::Paint* currentSelectedPaint{nullptr};
+	Type type;
 };
 
 static bool Pick(PickInfo& pickInfo, const Vec2& point, tvg::Paint* paint, int depth)
@@ -71,16 +78,14 @@ static bool Pick(PickInfo& pickInfo, const Vec2& point, tvg::Paint* paint, int d
 				return false;
 
 			pickInfo.currentSelectedScene = scene;
-			if (depth == 0 || isCurrentSelected)
 			{
-				bool isPicked = false;
 				for (auto* p : rawScene->paints())
 				{
-					isPicked |= Pick(pickInfo, point, p, depth + 1);
-					if (isPicked)
+					if (Pick(pickInfo, point, p, depth + 1))
+					{
 						return true;
+					}
 				}
-				return isCurrentSelected || isPicked;
 			}
 		}
 		if (isCurrentSelected)
@@ -89,6 +94,18 @@ static bool Pick(PickInfo& pickInfo, const Vec2& point, tvg::Paint* paint, int d
 		return true;
 	}
 	return false;
+}
+
+static void SetPickInfoType(PickInfo& pickInfo)
+{
+	pickInfo.type = PickInfo::Type::None;
+	if (pickInfo.currentSelectedPaint && pickInfo.currentSelectedScene)
+	{
+		if (pickInfo.currentSelectedPaint->type() == tvg::Type::Scene)
+			pickInfo.type = PickInfo::Type::Scene;
+		if (pickInfo.currentSelectedPaint->type() == tvg::Type::Shape)
+			pickInfo.type = PickInfo::Type::Shape;
+	}
 }
 
 template <typename T>
@@ -100,8 +117,17 @@ static bool Pick(T* canvasOrScene, PickInfo& pickInfo, const Vec2& point)
 	{
 		isPicked |= Pick(pickInfo, point, paint, 0);
 	}
+	SetPickInfoType(pickInfo);
 	return isPicked;
 }
+template <>
+static bool Pick<tvg::Scene>(tvg::Scene* scene, PickInfo& pickInfo, const Vec2& point)
+{
+	auto ret = Pick(pickInfo, point, scene, 0);
+	SetPickInfoType(pickInfo);
+	return ret;
+}
+
 struct Line
 {
 	float intercept{0};

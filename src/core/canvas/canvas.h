@@ -77,6 +77,7 @@ public:
 	{
 		return mIsSw;
 	}
+	virtual void moveCamera(Vec2 xy);
 
 	Size mSize{};
 

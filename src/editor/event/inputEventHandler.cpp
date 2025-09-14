@@ -8,11 +8,13 @@ void InputEventHandler::setInputContoller(InputController* inputController)
 	if (rInputController && rInputController != inputController)
 	{
 		rInputController->broadcast(InputType::INPUT_DETACH, InputTrigger::Triggered, 1.0f);
+		rInputController->clearCach();
 		mState.init();
 	}
 	rInputController = inputController;
 	if (rInputController)
 	{
+		rInputController->clearCach();
 		rInputController->broadcast(InputType::INPUT_ATTACH, InputTrigger::Triggered, 1.0f);
 	}
 }
@@ -30,7 +32,7 @@ void InputEventHandler::processEvent(const SDL_Event& event)
 	mState.clickTimer += core::io::deltaTime;
 	if (mState.clickTimer >= Threshold_doubleClickTime)
 	{
-		mState.clickCount = 0.0f;
+		mState.clickCount = 0;
 	}
 
 	switch (event.type)
@@ -51,6 +53,14 @@ void InputEventHandler::processEvent(const SDL_Event& event)
 				rInputController->broadcast(InputType::MOUSE_LEFT_DOWN, InputTrigger::Started, {mouseX, mouseY});
 				mState.leftMouseDown = true;
 			}
+			else if (event.button.button == SDL_BUTTON_MIDDLE)
+			{
+				mState.mousePos = {mouseX, mouseY};
+				rInputController->broadcast(InputType::MOUSE_MIDDLE_DOWN, InputTrigger::Started,
+											InputValue(mouseX, mouseY));
+				mState.middleMouseDown = true;
+			}
+
 			break;
 		}
 		case SDL_MOUSEBUTTONUP:
@@ -67,6 +77,13 @@ void InputEventHandler::processEvent(const SDL_Event& event)
 					rInputController->broadcast(InputType::MOUSE_LEFT_DOUBLE_CLICK, InputTrigger::Triggered,
 												{mouseX, mouseY});
 				}
+			}
+			if (mState.middleMouseDown && event.button.button == SDL_BUTTON_MIDDLE)
+			{
+				mState.mousePos = {mouseX, mouseY};
+				rInputController->broadcast(InputType::MOUSE_MIDDLE_DOWN, InputTrigger::Ended,
+											InputValue(mouseX, mouseY));
+				mState.middleMouseDown = false;
 			}
 			break;
 		}
@@ -96,5 +113,9 @@ void InputEventHandler::processTick()
 	if (mState.leftMouseDown)
 	{
 		rInputController->broadcast(InputType::MOUSE_LEFT_DOWN, InputTrigger::Triggered, mState.mousePos);
+	}
+	if (mState.middleMouseDown)
+	{
+		rInputController->broadcast(InputType::MOUSE_MIDDLE_DOWN, InputTrigger::Triggered, mState.mousePos);
 	}
 }

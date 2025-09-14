@@ -3,6 +3,7 @@
 #include "../animationCreatorCanvas.h"
 #include "scene/scene.h"
 
+#include "scene/component/components.h"
 #include "interface/editInterface.h"
 
 namespace core
@@ -54,8 +55,9 @@ bool AddMode::onDragLeftMouse(const InputValue& inputValue)
 }
 bool AddMode::onEndLeftMouse(const InputValue& inputValue)
 {
-	auto endPoint = inputValue.get<Vec2>();
-	auto startPoint = mContext.startPoint;
+	auto& world = rCanvas->mMainScene->mSceneEntity.getComponent<WorldTransformComponent>();
+	auto endPoint = inputValue.get<Vec2>() * world.inverseWorldTransform;
+	auto startPoint = mContext.startPoint * world.inverseWorldTransform;
 	auto start = Vec2{std::min(startPoint.x, endPoint.x), std::min(startPoint.y, endPoint.y)};
 	auto end = Vec2{std::max(startPoint.x, endPoint.x), std::max(startPoint.y, endPoint.y)};
 

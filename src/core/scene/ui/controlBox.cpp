@@ -228,7 +228,7 @@ void UIShape::updatePath(PathPoints pathPoints)
 
 Vec2 UIShape::getWorldPosition()
 {
-	return mEntity.getComponent<TransformComponent>().worldPosition;
+	return mEntity.getComponent<WorldTransformComponent>().worldPosition;
 }
 
 void UIShape::setVisible(bool visible)

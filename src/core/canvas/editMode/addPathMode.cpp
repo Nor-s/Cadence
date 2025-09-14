@@ -30,7 +30,9 @@ bool AddPathMode::onStarClickLefttMouse(const InputValue& inputValue)
 	if (!mEditPath)
 	{
 		PathPoints pathPoints;
-		pathPoints.push_back(PathPoint{.localPosition = start, .type = PathPoint::Command::MoveTo});
+		auto& world = rCanvas->mMainScene->mSceneEntity.getComponent<WorldTransformComponent>();
+		auto pos = start * world.inverseWorldTransform;
+		pathPoints.push_back(PathPoint{.localPosition = pos, .type = PathPoint::Command::MoveTo});
 		mTargetPath = rCanvas->mMainScene->createPathLayer(pathPoints);
 		mEditPath = std::make_unique<EditPath>(rCanvas->mControlScene.get(), mTargetPath, true);
 	}

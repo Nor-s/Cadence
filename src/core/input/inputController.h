@@ -153,6 +153,14 @@ public:
 	{
 		bool isCaptured = false;
 		auto& inputActionBindings = mInputActions[inputType];
+		if (mBeforeInputValue.find(inputType) == mBeforeInputValue.end())
+		{
+			mBeforeInputValue[inputType] = value.get<Vec3>();
+		}
+
+		auto tempValue = value;
+		tempValue.mBeforeValue = mBeforeInputValue[inputType];
+
 		for (auto it = inputActionBindings.rbegin(); it != inputActionBindings.rend(); ++it)
 		{
 			auto* inputActionBinding = *it;
@@ -160,18 +168,22 @@ public:
 			{
 				if (inputActionBinding->mIsDeleted || (inputActionBinding->getAction().mUseCapture && isCaptured))
 					continue;
-
-				isCaptured |= inputActionBinding->execute(value);
+				isCaptured |= inputActionBinding->execute(tempValue);
 			}
 		}
+		mBeforeInputValue[inputType] = value.get<Vec3>();
 	}
 	size_t size() const
 	{
 		return mInputActions.size();
 	}
+	void clearCach()
+	{
+		mBeforeInputValue.clear();
+	}
 
 private:
-	// TODO: delete input action binding
+	std::unordered_map<InputType, Vec3> mBeforeInputValue;
 	std::unordered_map<InputType, std::vector<InputActionBinding*>> mInputActions;
 	std::vector<InputActionBinding*> mUnbindingActions;
 	std::vector<InputActionBinding*> mBindingActions;

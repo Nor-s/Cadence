@@ -57,10 +57,13 @@ private:
 	void update();
 	void init();
 	void setVisible(bool isVisible);
+	Vec2 getLocal(Vec2 worldPos);
 
 private:
 	Scene* rScene{nullptr};
 	TransformComponent mBeforeTransform;
+	WorldTransformComponent mBeforeWorldTransform;
+
 	InputController* rInputController{nullptr};
 	Vec2 mStartPoint{0.0f, 0.0f};
 	Vec2 mBeforePoint{0.0f, 0.0f};

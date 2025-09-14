@@ -8,6 +8,8 @@
 
 #include "animation/animator.h"
 
+#include "scene/component/components.h"
+
 #include <memory>
 
 namespace core
@@ -17,7 +19,13 @@ AnimationCreatorCanvas::AnimationCreatorCanvas(void* context, Size size, bool bI
 	: CanvasWrapper(context, size, bIsSw)
 {
 	mCanvasScene = std::make_unique<core::Scene>();
+	auto board = mCanvasScene->createRectFillLayer({-256, -256}, {512, 512});
+	auto& fill = board.getComponent<SolidFillComponent>();
+	fill.color = {255, 255, 255};
+	board.update();
+
 	mMainScene = std::make_unique<core::Scene>(mCanvasScene.get());
+
 	mControlScene = std::make_unique<core::Scene>();
 	mAnimator = std::make_unique<core::Animator>(this);
 
@@ -42,13 +50,18 @@ void AnimationCreatorCanvas::onUpdate()
 	CanvasWrapper::onUpdate();
 
 	mAnimator->update();
-	mIsDirty |= mMainScene->onUpdate();
+	mIsDirty |= mCanvasScene->onUpdate();
 	mInputController->onUpdate();
 	mIsDirty |= mControlScene->onUpdate();
 }
 void AnimationCreatorCanvas::onDestroy()
 {
-	mMainScene->destroy();
+	mCanvasScene->destroy();
 	mControlScene->destroy();
 }
+void AnimationCreatorCanvas::moveCamera(Vec2 xy)
+{
+	mCanvasScene->mSceneEntity.move(xy);
+}
+
 }	 // namespace core

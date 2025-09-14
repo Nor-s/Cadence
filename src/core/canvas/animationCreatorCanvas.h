@@ -25,8 +25,9 @@ public:
 
 	void onUpdate() override;
 	void onDestroy() override;
+	void moveCamera(Vec2 xy) override;
 
-	std::unique_ptr<core::Scene> mCanvasScene;
+	std::unique_ptr<core::Scene> mCanvasScene; // todo: mCanvasScene Move to CanvasWrapper
 	std::unique_ptr<core::Animator> mAnimator;
 	std::unique_ptr<core::Scene> mMainScene;
 	std::unique_ptr<core::Scene> mControlScene;

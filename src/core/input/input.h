@@ -10,6 +10,7 @@ enum InputType : uint8_t
 {
 	MOUSE_LEFT_DOWN = 0u,
 	MOUSE_LEFT_DOUBLE_CLICK,
+	MOUSE_MIDDLE_DOWN,
 	MOUSE_MOVE,
 	MOUSE_WHEEL,
 	INPUT_TYPE_SIZE,
@@ -43,7 +44,7 @@ inline bool HasFlag(InputTrigger value, InputTrigger flag)
 class InputValue
 {
 public:
-	InputValue(float x) : mValue(x, 0.0f, 0.0f)
+	InputValue(float x) : mValue(x, x, x)
 	{
 	}
 	InputValue(float x, float y) : mValue(x, y, 0.0f)
@@ -63,9 +64,16 @@ public:
 	{
 		return static_cast<T>(mValue);
 	}
+	template <typename T>
+	T getDelta() const
+	{
+		return static_cast<T>(mValue - mBeforeValue);
+	}
 
 private:
+	friend class InputController;
 	Vec3 mValue;
+	Vec3 mBeforeValue;
 };
 
 }	 // namespace core

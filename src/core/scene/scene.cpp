@@ -24,8 +24,9 @@ std::unordered_map<uint32_t, Entity> Scene::gEntityMap;
 Scene::Scene(Scene* parentScene)
 {
 	Scene* targetScene = parentScene ? parentScene : this;
+	rParentScene = parentScene;
 
-	auto entity = Scene::CreateEntity(targetScene, "Scene");
+	auto entity = Scene::CreateEntity(targetScene, "Scene", parentScene ? parentScene->mSceneEntity : Entity());
 	auto& scene = entity.addComponent<SceneComponent>();
 	mId = entity.getComponent<IDComponent>().id;
 
@@ -42,6 +43,7 @@ Scene::Scene(Scene* parentScene)
 	{
 		parentScene->mTvgScene->push(mTvgScene);
 	}
+	mSceneEntity = entity;
 }
 
 Scene::~Scene()
@@ -54,14 +56,16 @@ Scene::~Scene()
 	mTvgScene->unref();
 }
 
-Entity Scene::CreateEntity(Scene* scene, std::string_view name)
+Entity Scene::CreateEntity(Scene* scene, std::string_view name, Entity parent)
 {
 	static uint32_t id = 1;
 
 	Entity entity(scene);
 
 	entity.addComponent<IDComponent>(id);
-	entity.addComponent<TransformComponent>();
+	auto& transform = entity.addComponent<TransformComponent>();
+	entity.addComponent<WorldTransformComponent>(
+		transform, parent.isNull() ? nullptr : &parent.getComponent<WorldTransformComponent>());
 	entity.addComponent<NameComponent>(name.empty() ? "Entity" : name);
 	entity.addComponent<RelationshipComponent>();
 	entity.addComponent<Dirty>();
@@ -98,12 +102,12 @@ std::unique_ptr<Scene> Scene::createScene()
 
 Entity Scene::createEntity(std::string_view name)
 {
-	return CreateEntity(this, name);
+	return CreateEntity(this, name, mSceneEntity);
 }
 
 Entity Scene::createEllipseFillLayer(Vec2 minXy, Vec2 wh)
 {
-	auto entity = CreateEntity(this, "Ellipse Layer");
+	auto entity = CreateEntity(this, "Ellipse Layer", mSceneEntity);
 	auto& id = entity.getComponent<IDComponent>();
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& pathList = entity.addComponent<PathListComponent>();
@@ -138,7 +142,7 @@ Entity Scene::createEllipseFillStrokeLayer(Vec2 minXy, Vec2 wh)
 
 Entity Scene::createRectFillLayer(Vec2 minXy, Vec2 wh)
 {
-	auto entity = CreateEntity(this, "Rect Layer");
+	auto entity = CreateEntity(this, "Rect Layer", mSceneEntity);
 	auto& id = entity.getComponent<IDComponent>();
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& pathList = entity.addComponent<PathListComponent>();
@@ -173,7 +177,7 @@ Entity Scene::createRectFillStrokeLayer(Vec2 minXy, Vec2 wh)
 
 Entity Scene::createPolygonFillLayer(Vec2 minXy, Vec2 wh)
 {
-	auto entity = CreateEntity(this, "polygon");
+	auto entity = CreateEntity(this, "polygon", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -214,7 +218,7 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 	{
 		wh.w = wh.h = 1.0f;
 	}
-	auto entity = CreateEntity(this, "Star");
+	auto entity = CreateEntity(this, "Star", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -247,7 +251,7 @@ Entity Scene::createPathLayer(PathPoints path)
 {
 	assert(path.empty() == false);
 
-	auto entity = CreateEntity(this, "path");
+	auto entity = CreateEntity(this, "path", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
 	auto& shape = entity.addComponent<ShapeComponent>();
@@ -281,7 +285,7 @@ Entity Scene::createPathLayer(PathPoints path)
 
 Entity Scene::createObb(const std::array<Vec2, 4>& points)
 {
-	auto entity = CreateEntity(this, "obb");
+	auto entity = CreateEntity(this, "obb", mSceneEntity);
 
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
@@ -354,7 +358,6 @@ void Scene::destroyEntity(Entity& entity)
 		entity.removeComponent<ShapeComponent>();
 	}
 	gEntityMap.erase(entity.getComponent<IDComponent>().id);
-	mDeletedEntity.insert(entity.mHandle);
 	entity.getOrAddComponent<DestroyState>();
 
 	entity.mHandle = entt::null;
@@ -527,16 +530,29 @@ bool Scene::onUpdate()
 				}
 			}
 		}
+		if (e.hasComponent<SceneComponent>())
+		{
+			Update(e.getComponent<SceneComponent>(), e.getComponent<TransformComponent>());
+		}
 
 		dirty.mask = Dirty::Type::None;
 	}
+
+	mRegistry.view<WorldTransformComponent>().each([this](auto entity, WorldTransformComponent& world)
+												   { world.update(); });
+
+	mRegistry.view<SceneComponent>().each(
+		[this](auto entity, SceneComponent& scene)
+		{
+			if (scene.scene != this)
+				mIsDirty |= scene.scene->onUpdate();
+		});
 
 	bool isUpdate = false;
 	if (mStorage.size() > 0 || mIsDirty)
 	{
 		isUpdate = true;
 	}
-
 	mStorage.clear();
 	mIsDirty = false;
 
@@ -546,11 +562,6 @@ bool Scene::onUpdate()
 void Scene::destroy()
 {
 	// todo: refactor [create - reference - update - destroy] ... life cycle
-	for (auto entity : mDeletedEntity)
-	{
-		mRegistry.destroy(entity);
-	}
-	mDeletedEntity.clear();
+	mRegistry.view<DestroyState>().each([this](auto entity, DestroyState& destroy) { mRegistry.destroy(entity); });
 }
-
 }	 // namespace core

@@ -84,6 +84,7 @@ bool BBox::onStartClickLeftMouse(const InputValue& inputValue)
 		if (mControlBox[type]->onStartLeftDown(mStartPoint))
 		{
 			mBeforeTransform = rTarget.getComponent<TransformComponent>();
+			mBeforeWorldTransform = rTarget.getComponent<WorldTransformComponent>();
 			mCurrentControlType = ControlType(type);
 			return true;
 		}
@@ -147,7 +148,7 @@ void BBox::update()
 
 void BBox::init()
 {
-	if (rTarget.isNull())
+	if (rTarget.isNull() || !rTarget.hasComponent<ShapeComponent>())
 		return;
 
 	auto& targetShape = rTarget.getComponent<ShapeComponent>();
@@ -158,8 +159,8 @@ void BBox::init()
 	};
 	auto moveBox = [this]()
 	{
-		auto diff = mCurrentPoint - mBeforePoint;
-
+		auto inv = mBeforeWorldTransform.parentTransform->inverseWorldTransform;
+		auto diff = mCurrentPoint * inv - mBeforePoint * inv;
 		UpdateEntityDeltaPositionCurrentFrame(rTarget.getId(), diff.x, diff.y, false);
 
 		return true;
@@ -178,14 +179,14 @@ void BBox::init()
 	};
 	auto scaleLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
 		return true;
 	};
 	auto scaleXLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
 		ratio.y = 1.0f;
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
@@ -193,7 +194,7 @@ void BBox::init()
 	};
 	auto scaleYLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeTransform.inverse());
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
 		ratio.x = 1.0f;
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
@@ -202,9 +203,11 @@ void BBox::init()
 
 	auto rotationLambda = [this]()
 	{
-		const auto pivot = mBeforeTransform.worldPosition;
-		auto before = mBeforePoint - pivot;
-		auto current = mCurrentPoint - pivot;
+		auto inv = rTarget.getComponent<WorldTransformComponent>().inverseWorldTransform;	 // (R^T, -R^T T)
+		auto scale = rTarget.getComponent<TransformComponent>().scale;
+		auto dir = 0 < scale.x * scale.y ? 1.0f : -1.0f;
+		auto before = mBeforePoint * inv;
+		auto current = mCurrentPoint * inv;
 
 		const auto beforeLen = length(before);
 		const auto currentLen = length(current);
@@ -215,11 +218,11 @@ void BBox::init()
 		current = normalize(current);
 
 		const auto dot = before * current;
-		const auto cross = core::cross(before, current);
+		const auto cross = std::clamp(core::cross(before, current), -1.0f, 1.0f);
 		const auto rad = std::atan2(cross, dot);
 		const auto diff = ToDegree(rad);
 
-		UpdateEntityDeltaRotationCurrentFrame(rTarget.getId(), diff, false);
+		UpdateEntityDeltaRotationCurrentFrame(rTarget.getId(), dir * diff, false);
 
 		return true;
 	};
@@ -228,7 +231,8 @@ void BBox::init()
 	// todo: reset unique_ptr -> move point, change transform box (apply target transform)
 	std::array<Vec2, 4> points = GetObb(targetShape.shape);
 	auto& targetTransform = rTarget.getComponent<TransformComponent>();
-	const auto centerPoint = targetTransform.worldPosition;
+	auto& targetWorldTransform = rTarget.getComponent<WorldTransformComponent>();
+	const auto centerPoint = targetWorldTransform.worldPosition;
 	auto wh = Vec2{CommonSetting::Width_DefaultBBoxControlBox, CommonSetting::Width_DefaultBBoxControlBox};
 
 	{
@@ -311,6 +315,11 @@ void BBox::setVisible(bool isVisible)
 	{
 		controlBox->setVisible(isVisible);
 	}
+}
+
+Vec2 BBox::getLocal(Vec2 worldPos)
+{
+	return worldPos * mBeforeWorldTransform.inverseWorldTransform;
 }
 
 }	 // namespace core

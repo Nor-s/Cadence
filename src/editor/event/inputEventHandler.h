@@ -10,9 +10,11 @@ class InputEventHandler
 		float clickTimer{0.0f};
 		int clickCount{0};
 		bool leftMouseDown{false};
+		bool middleMouseDown{false};
 		core::Vec2 mousePos{};
 		void init()
 		{
+			middleMouseDown = false;
 			leftMouseDown = false;
 			clickCount = 0;
 		}

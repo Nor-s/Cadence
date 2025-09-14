@@ -21,7 +21,7 @@ class Entity;
 class Scene
 {
 public:
-	static Entity CreateEntity(Scene* scene, std::string_view name);
+	static Entity CreateEntity(Scene* scene, std::string_view name, Entity parent);
 	static Scene* FindScene(tvg::Scene* scene);
 	static Entity FindEntity(uint32_t entityId);
 
@@ -79,6 +79,7 @@ public:
 	void destroy();
 
 	uint32_t mId;
+	Entity mSceneEntity;
 
 protected:
 	friend class Entity;
@@ -87,10 +88,9 @@ protected:
 	std::vector<CanvasWrapper*> rCanvasList;
 	std::list<Entity> mDrawOrder;
 	tvg::Scene* mTvgScene;
-	std::unordered_set<entt::entity> mDeletedEntity;
 	reactive_storage mStorage;
 	bool mIsDirty{false};
-	Scene* mParentScene{nullptr};
+	Scene* rParentScene{nullptr};
 };
 
 }	 // namespace core

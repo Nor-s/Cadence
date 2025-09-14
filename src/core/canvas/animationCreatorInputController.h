@@ -31,6 +31,11 @@ public:
 	bool onEndLeftMouse(const InputValue& inputValue);
 	bool onInputDetach(const InputValue& inputValue);
 	bool onInputAttach(const InputValue& inputValue);
+	bool onInputWheel(const InputValue& inputValue);
+
+	bool onStartMoveCanvas(const InputValue& inputValue);
+	bool onMoveCanvas(const InputValue& inputValue);
+	bool onEndMoveCanvas(const InputValue& inputValue);
 
 	std::unique_ptr<InputController> mHandle;
 

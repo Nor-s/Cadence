@@ -90,7 +90,10 @@ void ImGuiCanvasView::onDraw(std::string_view title, core::CanvasWrapper& canvas
 		App::PushEvent<CanvasFocusEvent>(canvasIndex,
 										 ImGui::IsWindowFocused() && !isDraggingTitle && !needResize && !isMoving);
 		if (needResize)
+		{
+			canvas.moveCamera(updateSize * 0.5f);
 			App::PushEvent<CanvasResizeEvent>(canvasIndex, updateSize);
+		}
 	}
 	ImGui::End();
 	ImGui::PopStyleVar();
