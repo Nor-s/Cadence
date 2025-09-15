@@ -7,6 +7,7 @@
 
 #include "animation/animator.h"
 #include "editHelper.h"
+#include <algorithm>
 
 using namespace core;
 
@@ -202,6 +203,30 @@ extern "C"
 		}
 		return EDIT_RESULT_FAIL;
 	}
+	EDIT_API void MovePath(ENTITY_ID sourceId, int pathIndex, ENTITY_ID targetId)
+	{
+		auto sourceEntity = Scene::FindEntity(sourceId);
+		auto targetEntity = Scene::FindEntity(targetId);
+		if (sourceEntity.isNull() || targetEntity.isNull() || sourceId == targetId)
+			return;
+
+		if (sourceEntity.hasComponent<PathListComponent>() && targetEntity.hasComponent<PathListComponent>())
+		{
+			auto& sourcePathList = sourceEntity.getComponent<PathListComponent>();
+			auto& targetPathList = targetEntity.getComponent<PathListComponent>();
+			if (pathIndex < 0 || pathIndex >= (int) sourcePathList.paths.size())
+				return;
+
+			auto path = std::move(sourcePathList.paths[pathIndex]);
+			auto& sourcePath = sourcePathList.paths;
+			sourcePath.erase(sourcePathList.paths.begin() + pathIndex);
+			targetPathList.paths.push_back(std::move(path));
+
+			sourceEntity.setDirty(Dirty::Type::Path);
+			targetEntity.setDirty(Dirty::Type::Path);
+		}
+	}
+
 	// Rect
 	EDIT_API Edit_Result
 	UpdateEntityRectPathRadiusCurrentFrame(ENTITY_ID id, int pathIndex, float radius, bool isEnd, bool isRemove)

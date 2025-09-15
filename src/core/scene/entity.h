@@ -107,7 +107,7 @@ public:
 	template <typename T>
 	T* findPath(int startIdx = 0);
 
-	const EntityID getId();
+	const EntityID getId() const;
 	const bool isNull() const;
 
 	void changeDrawOrder(ChangeOrderType changeOrderType);

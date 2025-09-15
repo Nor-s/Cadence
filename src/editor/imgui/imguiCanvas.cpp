@@ -331,6 +331,7 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 		auto& path = entity.getComponent<core::PathListComponent>();
 		for (int i = 0; i < path.paths.size(); i++)
 		{
+			ImGui::PushID(i);
 			auto* p = path.paths[i].get();
 			switch (p->type())
 			{
@@ -347,12 +348,9 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 					drawRectComponent(entity, *static_cast<core::RectPath*>(p), i);
 					break;
 			}
+			ImGui::PopID();
 		}
 	}
-	// drawRectComponent(entity);
-	// drawElipseComponent(entity);
-	// drawPolygonComponent(entity);
-	// drawStarPolygonComponent(entity);
 }
 
 void ImGuiCanvasView::drawRectComponent(core::Entity& entity, core::RectPath& path, int idx)

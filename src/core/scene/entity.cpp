@@ -138,7 +138,7 @@ void Entity::updateTransform()
 	getComponent<WorldTransformComponent>().update();
 }
 
-const EntityID Entity::getId()
+const EntityID Entity::getId() const
 {
 	return getComponent<IDComponent>().id;
 }

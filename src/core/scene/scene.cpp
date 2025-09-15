@@ -519,7 +519,15 @@ bool Scene::onUpdate()
 			if (HasDirty(dirty, Dirty::Type::Path) || HasDirty(dirty, Dirty::Type::Fill) ||
 				HasDirty(dirty, Dirty::Type::Stroke))
 			{
-				e.updateShapePath();
+				if (e.getComponent<PathListComponent>().paths.empty())
+				{
+					shape.shape->visible(false);
+				}
+				else
+				{
+					shape.shape->visible(true);
+					e.updateShapePath();
+				}
 				if (e.hasComponent<SolidFillComponent>())
 				{
 					Update(shape, e.getComponent<SolidFillComponent>());

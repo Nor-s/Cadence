@@ -57,7 +57,23 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 	ImGuiTreeNodeFlags flags =
 		ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-	if (ImGui::TreeNodeEx(label.c_str(), flags))
+	constexpr const char* kPayloadPathItem = "CORE_PATH_ITEM";
+	struct PathDragPacket
+	{
+		core::EntityID srcEntityId;
+		int srcIndex = -1;
+	};
+	bool click = ImGui::TreeNodeEx(label.c_str(), flags);
+	if (ImGui::BeginDragDropTarget())
+	{
+		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kPayloadPathItem))
+		{
+			const auto* pkt = static_cast<const PathDragPacket*>(payload->Data);
+			MovePath((ENTITY_ID) pkt->srcEntityId, pkt->srcIndex, (ENTITY_ID) entity.getId());
+		}
+		ImGui::EndDragDropTarget();
+	}
+	if (click)
 	{
 		core::CallIfHas<core::SolidFillComponent>(entity, DrawLeafLine, "Fill");
 		core::CallIfHas<core::StrokeComponent>(entity, DrawLeafLine, "Stroke");
@@ -65,28 +81,45 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 
 		if (entity.hasComponent<core::PathListComponent>())
 		{
-			auto& pathList = entity.getComponent<core::PathListComponent>().paths;
-			for (size_t i = 0; i < pathList.size(); i++)
+			auto& pathComp = entity.getComponent<core::PathListComponent>();
+			auto& pathList = pathComp.paths;
+			for (int i = 0; i < static_cast<int>(pathList.size()); ++i)
 			{
+				const char* itemLabel = nullptr;
 				switch (pathList[i]->type())
 				{
 					case core::IPath::Type::Ellipse:
-						DrawLeafLine("Ellipse");
+						itemLabel = "Ellipse";
 						break;
 					case core::IPath::Type::Rect:
-						DrawLeafLine("Rect");
+						itemLabel = "Rect";
 						break;
 					case core::IPath::Type::Polygon:
-						DrawLeafLine("Polygon");
+						itemLabel = "Polygon";
 						break;
 					case core::IPath::Type::Star:
-						DrawLeafLine("Star");
+						itemLabel = "Star";
 						break;
 					case core::IPath::Type::Path:
-						DrawLeafLine("Path");
+						itemLabel = "Path";
 						break;
 				}
+
+				ImGui::PushID(i);
+				ImGui::Selectable(itemLabel, false, ImGuiSelectableFlags_SpanAvailWidth);
+
+				// === Drag Source ===
+				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoDisableHover))
+				{
+					PathDragPacket packet{entity.getId(), i};
+					ImGui::SetDragDropPayload(kPayloadPathItem, &packet, sizeof(packet));
+					ImGui::TextUnformatted(itemLabel);
+					ImGui::EndDragDropSource();
+				}
+
+				ImGui::PopID();
 			}
+
 			ImGui::TreePop();
 		}
 	}

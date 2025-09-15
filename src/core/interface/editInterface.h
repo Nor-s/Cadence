@@ -86,6 +86,9 @@ extern "C"
 	EDIT_API Edit_Result AddFillComponent(ENTITY_ID id);
 	EDIT_API Edit_Result AddStrokeComponent(ENTITY_ID id);
 
+	// move path
+	EDIT_API void MovePath(ENTITY_ID sourceId, int pathIndex, ENTITY_ID targetId);
+
 	// Rect
 	EDIT_API Edit_Result
 	UpdateEntityRectPathRadiusCurrentFrame(ENTITY_ID id, int pathIndex, float radius, bool isEnd, bool isRemove);
