@@ -13,11 +13,14 @@ public:
 	virtual ~ImGuiWindow() = default;
 
 	virtual void draw();
-	virtual void content() = 0;
+	virtual void content()
+	{
+	}
 
 protected:
 	std::string mName;
 	bool mOpened = true;
+	int mWindowFlags = 0;
 };
 
 }	 // namespace editor

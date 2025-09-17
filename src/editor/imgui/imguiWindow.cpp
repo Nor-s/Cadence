@@ -13,7 +13,7 @@ void ImGuiWindow::draw()
 {
 	mOpened = true;
 
-	if (ImGui::Begin(mName.c_str(), &mOpened))
+	if (ImGui::Begin(mName.c_str(), &mOpened, mWindowFlags))
 	{
 		content();
 	}

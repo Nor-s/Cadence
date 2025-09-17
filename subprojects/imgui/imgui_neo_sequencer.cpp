@@ -276,7 +276,8 @@ static bool createKeyframe(uint32_t* frame, const ImRect& select_bound, bool* is
 	}
 	if (select_bound.Contains(center))
 	{
-		*is_inside = true;
+		if (is_inside != nullptr)
+			*is_inside = true;
 		color = ColorConvertFloat4ToU32(GetStyleNeoSequencerColorVec4(ImGuiNeoSequencerCol_SelectedKeyframe));
 	}
 	drawList->AddCircleFilled(center, currentTimelineHeight / 3.0f, color, 4);
@@ -732,8 +733,8 @@ bool BeginNeoTimeline(const char* label, bool* open, ImGuiNeoTimelineFlags flags
 	auto labelSize = CalcTextSize(label);
 
 	labelSize.y += imStyle.FramePadding.y * 2 + neoStyle().ItemSpacing.y * 2;
-	labelSize.x +=
-		imStyle.FramePadding.x * 2 + neoStyle().ItemSpacing.x * 2 + (float) currentTimelineDepth * neoStyle().DepthItemSpacing;
+	labelSize.x += imStyle.FramePadding.x * 2 + neoStyle().ItemSpacing.x * 2 +
+				   (float) currentTimelineDepth * neoStyle().DepthItemSpacing;
 
 	bool isGroup = flags & ImGuiNeoTimelineFlags_Group && closable;
 	is_group.push_back(isGroup);

@@ -8,15 +8,20 @@ imgui_inc_dirs = include_directories([
 
 # Define source files
 imgui_sources = [
+  'imconfig.h',
   'GraphEditor.cpp',
+  'GraphEditor.h',
   'ImCurveEdit.cpp',
+  'ImCurveEdit.h',
   'ImGradient.cpp',
+  'ImGradient.h',
   'imgui_demo.cpp',
   'imgui_draw.cpp',
   'imgui_tables.cpp',
   'imgui_widgets.cpp',
   'imgui.cpp',
   'ImGuizmo.cpp',
+  'ImGuizmo.h',
   'ImSequencer.cpp',
   'imgui_impl_opengl3.cpp',
   'imgui_impl_sdl2.cpp',

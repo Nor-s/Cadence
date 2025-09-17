@@ -1,4 +1,3 @@
-#define IMGUI_DEFINE_MATH_OPERATORS
 
 #include "../app.h"
 #include "event/events.h"
@@ -105,7 +104,6 @@ void ImGuiCanvasView::onDrawSceneInspect()
 		return;
 
 	auto* lottieCanvas = static_cast<core::AnimationCreatorCanvas*>(gCurrentCanvas);
-	ImguiTimeline().draw(lottieCanvas);
 	ImGuiShapePanel().draw(lottieCanvas);
 
 	if (ImGui::Begin("Property", 0, 0))

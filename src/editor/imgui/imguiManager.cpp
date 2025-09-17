@@ -6,6 +6,7 @@
 #include "imgui/imguiContentBrowser.h"
 #include "imgui/imguiWindow.h"
 #include "imgui/imguiSceneHierarchy.h"
+#include "imgui/imguiTimeline.h"
 
 #include <string>
 #include <core/core.h>
@@ -49,6 +50,7 @@ void ImGuiManager::draw()
 void ImGuiManager::init()
 {
 	mWindows.push_back(std::make_unique<ImGuiSceneHierarchy>());
+	mWindows.push_back(std::make_unique<ImguiTimeline>());
 }
 
 void ImGuiManager::drawDocSpace()
