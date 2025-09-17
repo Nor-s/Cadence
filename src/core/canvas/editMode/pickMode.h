@@ -19,8 +19,6 @@ class PickMode : public EditMode
 		Vec2 startPoint{};
 		Vec2 beforePoint{};
 
-		BBox* bbox{nullptr};
-		Entity hover{};
 		// Entity bbox;
 		// Entity currentObb;
 		// Entity drag;

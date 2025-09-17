@@ -22,6 +22,7 @@
 #include "system/io.h"
 
 #include "interface/editInterface.h"
+#include "selection/selectionManager.h"
 
 
 namespace core

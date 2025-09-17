@@ -9,6 +9,7 @@
 #include "animation/animator.h"
 
 #include "scene/component/components.h"
+#include "selection/selectionManager.h"
 
 #include <memory>
 
@@ -52,6 +53,7 @@ void AnimationCreatorCanvas::onUpdate()
 	mAnimator->update();
 	mIsDirty |= mCanvasScene->onUpdate();
 	mInputController->onUpdate();
+	SelectionManager::Update(this);
 	mIsDirty |= mControlScene->onUpdate();
 }
 void AnimationCreatorCanvas::onDestroy()

@@ -56,6 +56,9 @@ source_file = [
 
     meson.current_source_dir().join('animation/animator.cpp'),
     meson.current_source_dir().join('animation/animator.h'),
+
+    meson.current_source_dir().join('selection/selectionManager.h'),
+    meson.current_source_dir().join('selection/selectionManager.cpp'),
 ]
 
 core_dep += [declare_dependency(

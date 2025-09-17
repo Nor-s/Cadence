@@ -25,7 +25,7 @@ BBox::BBox(InputController* inputController, core::Scene* scene, Entity target) 
 	mInputActionBindings.push_back(inputController->bindAction(InputAction(InputType::MOUSE_LEFT_DOWN, 2, true),
 															   InputTrigger::Ended, this, &BBox::onEndLeftMouse));
 	mInputActionBindings.push_back(inputController->bindAction(InputAction(InputType::MOUSE_MOVE, 2, true),
-															   InputTrigger::Ended, this, &BBox::onMoveMouse));
+															   InputTrigger::Triggered, this, &BBox::onMoveMouse));
 	retarget(target);
 }
 

@@ -79,6 +79,7 @@ void App::update()
 	{
 		canvas->onUpdate();
 	}
+	core::SelectionManager::Update();
 }
 
 void App::draw()
