@@ -69,6 +69,16 @@ void SelectionManager::Update(AnimationCreatorCanvas* canvas)
 	}
 }
 
+bool SelectionManager::IsSelected(AnimationCreatorCanvas* canvas, int id)
+{
+	for (auto& entity : Get().mSelectList[canvas])
+	{
+		if (entity.getId() == id)
+			return true;
+	}
+	return false;
+}
+
 void SelectionManager::Update()
 {
 }

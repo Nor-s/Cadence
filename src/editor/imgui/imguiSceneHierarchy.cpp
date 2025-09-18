@@ -4,13 +4,6 @@
 
 namespace editor
 {
-static void DrawLeafLine(const char* label)
-{
-	ImGui::TextUnformatted(ICON_MD_TUNE);
-	ImGui::SameLine();
-	ImGui::TextUnformatted(label);
-}
-
 static std::string GetEntityName(const core::Entity& entity)
 {
 	if (auto* n = entity.tryGetComponent<core::NameComponent>())
@@ -23,13 +16,14 @@ static std::string GetEntityName(const core::Entity& entity)
 void ImGuiSceneHierarchy::content()
 {
 	auto* canvas = GetCurrentAnimCanvas();
+	rCanvas = nullptr;
 	if (canvas == nullptr)
 	{
 		return;
 	}
 
-	auto* animCanvas = static_cast<core::AnimationCreatorCanvas*>(canvas);
-	auto* scene = animCanvas->mMainScene.get();
+	rCanvas = static_cast<core::AnimationCreatorCanvas*>(canvas);
+	auto* scene = rCanvas->mMainScene.get();
 	const auto& drawOrder = scene->getDrawOrder();
 
 	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
@@ -49,13 +43,32 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 	const bool hasShape = entity.hasComponent<core::ShapeComponent>();
 	const std::string label = name + std::string("##") + std::to_string(id);
 
+	auto selectCurrent = [canvas = rCanvas, entity]()
+	{
+		if (ImGui::IsItemClicked())
+		{
+			core::SelectionManager::Select(canvas, entity);
+		}
+	};
+
+	auto drawChildNode = [selectCurrent](const std::string& label)
+	{
+		ImGui::Bullet();
+		ImGui::Selectable(label.c_str());
+		selectCurrent();
+	};
+
 	if (!hasShape)
 	{
-		DrawLeafLine(label.c_str());
+		drawChildNode(label);
 		return;
 	}
 	ImGuiTreeNodeFlags flags =
 		ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_OpenOnDoubleClick | ImGuiTreeNodeFlags_SpanAvailWidth;
+	if (core::SelectionManager::IsSelected(rCanvas, entity.getId()))
+	{
+		flags |= ImGuiTreeNodeFlags_Selected;
+	}
 
 	constexpr const char* kPayloadPathItem = "CORE_PATH_ITEM";
 	struct PathDragPacket
@@ -64,6 +77,7 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 		int srcIndex = -1;
 	};
 	bool click = ImGui::TreeNodeEx(label.c_str(), flags);
+	selectCurrent();
 	if (ImGui::BeginDragDropTarget())
 	{
 		if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(kPayloadPathItem))
@@ -75,10 +89,6 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 	}
 	if (click)
 	{
-		core::CallIfHas<core::SolidFillComponent>(entity, DrawLeafLine, "Fill");
-		core::CallIfHas<core::StrokeComponent>(entity, DrawLeafLine, "Stroke");
-		DrawLeafLine((std::string("id: ") + std::to_string(id)).c_str());
-
 		if (entity.hasComponent<core::PathListComponent>())
 		{
 			auto& pathComp = entity.getComponent<core::PathListComponent>();
@@ -106,7 +116,9 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 				}
 
 				ImGui::PushID(i);
-				ImGui::Selectable(itemLabel, false, ImGuiSelectableFlags_SpanAvailWidth);
+				ImGui::Selectable((std::string("     ") + std::string(itemLabel)).c_str(), false,
+								  ImGuiSelectableFlags_SpanAvailWidth);
+				selectCurrent();
 
 				// === Drag Source ===
 				if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoDisableHover))
@@ -119,9 +131,11 @@ void ImGuiSceneHierarchy::drawTreeNode(const core::Entity& entity)
 
 				ImGui::PopID();
 			}
-
-			ImGui::TreePop();
 		}
+		core::CallIfHas<core::SolidFillComponent>(entity, drawChildNode, "Fill");
+		core::CallIfHas<core::StrokeComponent>(entity, drawChildNode, "Stroke");
+		drawChildNode(std::string("id: ") + std::to_string(id));
+		ImGui::TreePop();
 	}
 }
 

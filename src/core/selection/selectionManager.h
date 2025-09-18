@@ -11,11 +11,12 @@ class SelectionManager
 {
 public:
 	static void Select(AnimationCreatorCanvas* canvas, Entity entity);
-    static void Hover(AnimationCreatorCanvas* canvas, Entity entity);
+	static void Hover(AnimationCreatorCanvas* canvas, Entity entity);
 	static void Push(AnimationCreatorCanvas* canvas, Entity entity);
 	static void Clear(AnimationCreatorCanvas* canvas);
 	static void Update();
 	static void Update(AnimationCreatorCanvas* canvas);
+	static bool IsSelected(AnimationCreatorCanvas* canvas, int id);
 
 private:
 	static SelectionManager& Get();

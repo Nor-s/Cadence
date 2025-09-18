@@ -7,7 +7,8 @@
 namespace core
 {
 class Entity;
-}
+class AnimationCreatorCanvas;
+}	 // namespace core
 
 namespace editor
 {
@@ -23,6 +24,7 @@ public:
 
 private:
 	void drawTreeNode(const core::Entity& entity);
+	core::AnimationCreatorCanvas* rCanvas = nullptr;
 };
 
 }	 // namespace editor
