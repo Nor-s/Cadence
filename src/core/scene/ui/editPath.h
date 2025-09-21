@@ -12,11 +12,13 @@ namespace core
 class InputValue;
 class UIShape;
 class Scene;
+class InputController;
+class InputActionBinding;
 
 class EditPath
 {
 public:
-	EditPath(core::Scene* scene, Entity target, bool isAddMode);
+	EditPath(InputController* inputController, core::Scene* scene, Entity target, int pathIndex = -1);
 	~EditPath();
 
 	void init();
@@ -26,6 +28,8 @@ public:
 	bool onDragLeftMouse(const InputValue& inputValue);
 	bool onEndLeftMouse(const InputValue& inputValue);
 	bool onMoveMouse(const InputValue& inputValue);
+
+	void addPoint(const Vec2& worldPoisition);
 
 private:
 	void initPreview();
@@ -42,10 +46,12 @@ private:
 	void updatePreview(const Vec2& endPoint);
 
 private:
+	InputController* rInputController;
 	Entity rTarget;
 	Scene* rScene;
 	bool mIsAddMode;
 	PathPoints* rPathPoints;
+	int mPathIndex = 0;
 
 	// mouse info
 	Vec2 mStartPoint{0.0f, 0.0f};
@@ -58,6 +64,7 @@ private:
 	UIShape* rCurrentUi{nullptr};
 	bool mIsDrag{false};
 	bool mIsAddPoint{false};
+	float mElasped;
 
 	// path
 	std::vector<std::unique_ptr<UIShape>> mPathPointUIs;
@@ -65,6 +72,9 @@ private:
 	std::unique_ptr<UIShape> mLeftControlUI;
 	std::unique_ptr<UIShape> mRightControlUI;
 	std::unique_ptr<UIShape> mPathPreviewUI;
+
+	// input
+	std::vector<InputActionBinding*> mInputActionBindings;
 };
 
 }	 // namespace core

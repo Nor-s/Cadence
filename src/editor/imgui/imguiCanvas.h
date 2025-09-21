@@ -34,6 +34,7 @@ private:
 	void drawEllipseComponent(core::Entity& entity, core::EllipsePath& path, int idx);
 	void drawPolygonComponent(core::Entity& entity, core::PolygonPath& path, int idx);
 	void drawStarPolygonComponent(core::Entity& entity, core::StarPolygonPath& path, int idx);
+	void drawPathComponent(core::Entity& entity, core::RawPath& path, int idx);
 };
 
 }	 // namespace editor

@@ -317,6 +317,23 @@ static void Update(ShapeComponent& shape, RawPath& path)
 			{
 				case PathPoint::Command::Close:
 				{
+					auto& left = path.path[i - 1];
+					auto& right = path.path[0];
+					if (left.type == PathPoint::Command::CubicTo)
+					{
+						auto leftP = left.localPosition + left.deltaRightControlPosition;
+						auto rightP = right.localPosition + right.deltaLeftControlPosition;
+						types.emplace_back(tvg::PathCommand::CubicTo);
+						points.push_back(tvg::Point{leftP.x, leftP.y});
+						points.push_back(tvg::Point{rightP.x, rightP.y});
+						points.push_back(tvg::Point{right.localPosition.x, right.localPosition.y});
+					}
+					else if (left.type == PathPoint::Command::LineTo)
+					{
+						types.emplace_back(tvg::PathCommand::LineTo);
+						points.push_back(tvg::Point{right.localPosition.x, right.localPosition.y});
+					}
+
 					types.emplace_back(tvg::PathCommand::Close);
 					break;
 				}
@@ -412,8 +429,6 @@ static void Update(ShapeComponent& shape, RectPath& path)
 	const float x = path.position.x - path.scale.x * 0.5f;
 	const float y = path.position.y - path.scale.y * 0.5f;
 	shape.shape->appendRect(x, y, path.scale.x, path.scale.y, path.radius, path.radius);
-	shape.shape->strokeJoin(tvg::StrokeJoin::Round);
-	shape.shape->strokeCap(tvg::StrokeCap::Round);
 }
 // shape.shape->reset();
 
@@ -430,6 +445,8 @@ static void Update(ShapeComponent& shape, StrokeComponent& stroke)
 	shape.shape->strokeFill(static_cast<uint32_t>(stroke.color.x), static_cast<uint32_t>(stroke.color.y),
 							static_cast<uint32_t>(stroke.color.z), static_cast<uint32_t>(stroke.alpha));
 	shape.shape->order(true);
+	shape.shape->strokeJoin(tvg::StrokeJoin::Round);
+	shape.shape->strokeCap(tvg::StrokeCap::Round);
 }
 
 template <typename TComponent>

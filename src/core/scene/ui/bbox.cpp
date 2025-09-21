@@ -41,7 +41,7 @@ BBox::~BBox()
 void BBox::onUpdate()
 {
 	retarget(rTarget);
-	init();
+	init();	   // todo: delete init;
 }
 
 void BBox::retarget(Entity target)

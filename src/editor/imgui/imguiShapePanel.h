@@ -12,6 +12,11 @@ class ImGuiShapePanel
 {
 public:
 	void draw(core::AnimationCreatorCanvas* canvas);
+	void drawNormalMode(core::AnimationCreatorCanvas* canvas);
+	void drawEditMode(core::AnimationCreatorCanvas* canvas);
+
+private:
+	int mWindowFlags = 0;
 };
 
 }	 // namespace editor

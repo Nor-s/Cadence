@@ -31,6 +31,11 @@ struct IPath
 	virtual void appendTo(ShapeComponent& s) = 0;
 };
 
+struct VisibleComponent
+{
+	bool isVisible = true;
+};
+
 struct PathListComponent
 {
 	std::vector<std::unique_ptr<IPath>> paths;
@@ -110,8 +115,12 @@ struct RawPath : public IPath
 	}
 	bool update(float frameNo) override
 	{
-		// add path keyframe
-		return true;
+		bool changed = false;
+		for (auto& p : path)
+		{
+			changed |= p.update(frameNo);
+		}
+		return changed;
 	}
 	void appendTo(ShapeComponent& s) override;
 };

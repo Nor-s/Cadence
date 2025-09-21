@@ -13,18 +13,42 @@
 #include "common/common.h"
 
 #include "interface/editInterface.h"
+#include "interface/editHelper.h"
 #include "input/input.h"
+#include "input/inputController.h"
+
+#include "system/io.h"
 
 namespace core
 {
 
-EditPath::EditPath(core::Scene* scene, Entity target, bool isAddMode)
-	: rScene(scene), rTarget(target), mIsAddMode(isAddMode)
+EditPath::EditPath(InputController* inputController, core::Scene* scene, Entity target, int pathIndex)
+	: rInputController(inputController)
+	, rScene(scene)
+	, rTarget(target)
+	, mIsAddMode(pathIndex == -1)
+	, mPathIndex(pathIndex)
 {
+	mInputActionBindings.push_back(inputController->bindAction(InputAction(InputType::MOUSE_LEFT_DOWN, 2, true),
+															   InputTrigger::Started, this,
+															   &EditPath::onStartClickLeftMouse));
+	mInputActionBindings.push_back(inputController->bindAction(
+		InputAction(InputType::MOUSE_LEFT_DOWN, 2, true), InputTrigger::Triggered, this, &EditPath::onDragLeftMouse));
+	mInputActionBindings.push_back(inputController->bindAction(InputAction(InputType::MOUSE_LEFT_DOWN, 2, true),
+															   InputTrigger::Ended, this, &EditPath::onEndLeftMouse));
+	mInputActionBindings.push_back(inputController->bindAction(InputAction(InputType::MOUSE_MOVE, 2, true),
+															   InputTrigger::Triggered, this, &EditPath::onMoveMouse));
+	if (mPathIndex == -1)
+		mPathIndex = 0;
+
 	init();
 }
 EditPath::~EditPath()
 {
+	for (auto& binding : mInputActionBindings)
+	{
+		rInputController->unbinding(binding);
+	}
 }
 void EditPath::init()
 {
@@ -43,9 +67,10 @@ void EditPath::onUpdate()
 bool EditPath::onStartClickLeftMouse(const InputValue& inputValue)
 {
 	mIsAddPoint = false;
+	rCurrentUi = nullptr;
 	mIsDrag = true;
 	mStartPoint = mBeforePoint = inputValue.get<Vec2>();
-	rCurrentUi = nullptr;
+	mElasped = 0;
 
 	// move control points
 	if (onStartClickControlForCurvePoint())
@@ -55,24 +80,16 @@ bool EditPath::onStartClickLeftMouse(const InputValue& inputValue)
 
 	if (onStartClickForPathPoint())
 	{
-		updateControlPoint();
 		return true;
 	}
+	addPoint(mStartPoint);
 
-	if (mIsAddMode)
-	{
-		// add new point
-		mCurrentPointIndex = rPathPoints->size();
-		addPathPoint(mStartPoint);
-		mIsAddPoint = true;
-		rCurrentUi = mPathPointUIs.back().get();
-	}
-
-	return false;
+	return true;
 }
 
 bool EditPath::onDragLeftMouse(const InputValue& inputValue)
 {
+	mElasped += io::deltaTime;
 	mBeforePoint = mCurrentPoint;
 	mCurrentPoint = inputValue.get<Vec2>();
 
@@ -90,10 +107,15 @@ bool EditPath::onDragLeftMouse(const InputValue& inputValue)
 				auto localCurrent = mCurrentPoint * transform.inverseWorldTransform;
 				auto localDelta = localCurrent - localStart;
 
-				auto& point = rPathPoints->at(mCurrentPointIndex);
-				point.type = PathPoint::Command::CubicTo;
-				point.deltaLeftControlPosition = localDelta * -1.0f;
-				point.deltaRightControlPosition = localDelta;
+				auto point = ToEdit_PathPoint(rPathPoints->at(mCurrentPointIndex));
+				if (point.type != EDIT_PathPointType_MoveTo)
+					point.type = EDIT_PathPointType_CubicTo;
+
+				point.leftControlRelPosition[0] = -localDelta.x;
+				point.leftControlRelPosition[1] = -localDelta.y;
+				point.rightControlRelPosition[0] = localDelta.x;
+				point.rightControlRelPosition[1] = localDelta.y;
+				Internal_Path_UpdatePathPoint(rTarget.getId(), mPathIndex, &point, mIsAddMode, mCurrentPointIndex);
 
 				updateControlPoint();
 			}
@@ -104,14 +126,12 @@ bool EditPath::onDragLeftMouse(const InputValue& inputValue)
 		{
 			return true;
 		}
-		return false;
 	}
 
-	return mIsDrag;
+	return true;
 }
 bool EditPath::onEndLeftMouse(const InputValue& inputValue)
 {
-	auto len = length2(mCurrentPoint - mStartPoint);
 	mIsDrag = false;
 
 	for (auto& ui : mPathPointUIs)
@@ -123,16 +143,14 @@ bool EditPath::onEndLeftMouse(const InputValue& inputValue)
 
 	if (mIsAddMode)
 	{
-		if (rPathPoints->size() > 1 && len < CommonSetting::Threshold_AddPathLayer &&
+		if (rPathPoints->size() > 1 && mElasped < CommonSetting::Threshold_AddPathLayer &&
 			rCurrentUi == mPathPointUIs.begin()->get())
 		{
-			rPathPoints->push_back(PathPoint{.type = PathPoint::Command::Close});
-			if (!rTarget.hasComponent<SolidFillComponent>())
-				rTarget.addComponent<SolidFillComponent>();
-			return true;
+			return false;
 		}
 		if (mIsAddPoint)
 		{
+			auto len = length2(mCurrentPoint - mStartPoint);
 			auto& p = rPathPoints->at(mCurrentPointIndex);
 			if (len < CommonSetting::Threshold_AddPathModeChangeCurve)
 			{
@@ -140,7 +158,7 @@ bool EditPath::onEndLeftMouse(const InputValue& inputValue)
 			}
 		}
 	}
-	return false;
+	return true;
 }
 
 bool EditPath::onMoveMouse(const InputValue& inputValue)
@@ -157,7 +175,19 @@ bool EditPath::onMoveMouse(const InputValue& inputValue)
 	mLeftControlUI->onMoveMouse(point);
 	mRightControlUI->onMoveMouse(point);
 
-	return false;
+	return true;
+}
+
+void EditPath::addPoint(const Vec2& worldPoisition)
+{
+	if (mIsAddMode)
+	{
+		// add new point
+		mCurrentPointIndex = rPathPoints->size();
+		addPathPoint(worldPoisition);
+		mIsAddPoint = true;
+		rCurrentUi = mPathPointUIs.back().get();
+	}
 }
 
 }	 // namespace core
@@ -206,12 +236,17 @@ void EditPath::initControlPoint()
 				auto localBefore = mBeforePoint * transform.inverseWorldTransform;
 				auto localDelta = (localCurrent - localBefore);
 				auto delta = (mCurrentPoint - mBeforePoint);
-				auto& point = rPathPoints->at(mCurrentPointIndex);
+				auto point = ToEdit_PathPoint(rPathPoints->at(mCurrentPointIndex));
 
 				mLeftControlUI->moveByDelta(delta);
 				mRightControlUI->moveByDelta(delta * -1.0f);
-				point.deltaLeftControlPosition = point.deltaLeftControlPosition + localDelta;
-				point.deltaRightControlPosition = point.deltaRightControlPosition - localDelta;
+
+				point.leftControlRelPosition[0] += localDelta.x;
+				point.leftControlRelPosition[1] += localDelta.y;
+				point.rightControlRelPosition[0] -= localDelta.x;
+				point.rightControlRelPosition[1] -= localDelta.y;
+
+				Internal_Path_UpdatePathPoint(rTarget.getId(), mPathIndex, &point, mIsAddMode, mCurrentPointIndex);
 
 				mControlLineUI->onUpdate();
 				return true;
@@ -232,12 +267,17 @@ void EditPath::initControlPoint()
 				auto localBefore = mBeforePoint * transform.inverseWorldTransform;
 				auto localDelta = (localCurrent - localBefore);
 				auto delta = (mCurrentPoint - mBeforePoint);
-				auto& point = rPathPoints->at(mCurrentPointIndex);
+				auto point = ToEdit_PathPoint(rPathPoints->at(mCurrentPointIndex));
 
 				mRightControlUI->moveByDelta(delta);
 				mLeftControlUI->moveByDelta(delta * -1.0f);
-				point.deltaRightControlPosition = point.deltaRightControlPosition + localDelta;
-				point.deltaLeftControlPosition = point.deltaLeftControlPosition - localDelta;
+
+				point.leftControlRelPosition[0] -= localDelta.x;
+				point.leftControlRelPosition[1] -= localDelta.y;
+				point.rightControlRelPosition[0] += localDelta.x;
+				point.rightControlRelPosition[1] += localDelta.y;
+
+				Internal_Path_UpdatePathPoint(rTarget.getId(), mPathIndex, &point, mIsAddMode, mCurrentPointIndex);
 
 				mControlLineUI->onUpdate();
 				return true;
@@ -272,7 +312,13 @@ void EditPath::addPathPointControl(const Vec2& worldPosition)
 			auto localDelta = localCurrent - localBefore;
 			auto delta = (mCurrentPoint - mBeforePoint);
 			mPathPointUIs[idx]->moveByDelta(delta);
-			rPathPoints->at(idx).localPosition = rPathPoints->at(idx).localPosition + localDelta;
+
+			auto point = ToEdit_PathPoint(rPathPoints->at(idx));
+
+			point.localPosition[0] += localDelta.x;
+			point.localPosition[1] += localDelta.y;
+
+			Internal_Path_UpdatePathPoint(rTarget.getId(), mPathIndex, &point, mIsAddMode, idx);
 
 			updateControlPoint();
 
@@ -283,7 +329,12 @@ void EditPath::addPathPoint(const Vec2& worldPoisition)
 {
 	auto& transform = rTarget.getComponent<WorldTransformComponent>();
 	auto localPosition = worldPoisition * transform.inverseWorldTransform;
-	rPathPoints->push_back(PathPoint{.localPosition = localPosition, .type = mCurrentEditType});
+	Edit_PathPoint pathPoint{
+		.localPosition = {localPosition.x, localPosition.y},
+		.type = static_cast<Edit_PathPointType>(rPathPoints->empty() ? PathPoint::Command::MoveTo : mCurrentEditType)};
+
+	Internal_Path_AddPathPoint(rTarget.getId(), mPathIndex, &pathPoint, mIsAddMode);
+
 	addPathPointControl(worldPoisition);
 }
 
@@ -321,7 +372,8 @@ bool EditPath::onStartClickForPathPoint()
 void EditPath::updateControlPoint()
 {
 	auto& point = rPathPoints->at(mCurrentPointIndex);
-	if (point.type == PathPoint::Command::CubicTo)
+	if (point.type == PathPoint::Command::CubicTo ||
+		(point.type == PathPoint::Command::MoveTo && mCurrentEditType == PathPoint::Command::CubicTo))
 	{
 		auto& transform = rTarget.getComponent<WorldTransformComponent>();
 		auto worldPos = point.localPosition * transform.worldTransform;
@@ -385,9 +437,10 @@ void EditPath::initPreview()
 void EditPath::initPath()
 {
 	mPathPointUIs.clear();
-	auto* pathComponent = rTarget.findPath<RawPath>();
+	auto* pathComponent = rTarget.getPath<RawPath>(mPathIndex);
 	if (pathComponent == nullptr)
 		return;
+
 	auto& transformComponent = rTarget.getComponent<WorldTransformComponent>();
 	auto world = transformComponent.worldPosition;
 	rPathPoints = &pathComponent->path;

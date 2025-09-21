@@ -4,6 +4,8 @@
 #include "scene/component/components.h"
 #include "scene/component/uiComponents.h"
 #include "canvas/animationCreatorCanvas.h"
+#include "canvas/animationCreatorInputController.h"
+#include "selection/selectionManager.h"
 
 #include "animation/animator.h"
 #include "editHelper.h"
@@ -25,7 +27,7 @@ extern "C"
 			gCurrentCanvas = canvas;
 
 		auto* rawcanvas = static_cast<CanvasWrapper*>(canvas);
-		if (rawcanvas->type() == CanvasType::LottieCreator)
+		if (rawcanvas->type() == CanvasType::AnimationCreator)
 		{
 			gCurrentAnimCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
 		}
@@ -34,6 +36,55 @@ extern "C"
 	CANVAS_ptr GetCurrentAnimCanvas()
 	{
 		return gCurrentAnimCanvas;
+	}
+
+	EDIT_API Edit_Mode GetCurrentEditMode(CANVAS_ptr canvas)
+	{
+		if (canvas)
+		{
+			auto* rawcanvas = static_cast<CanvasWrapper*>(canvas);
+			if (rawcanvas->type() == CanvasType::AnimationCreator)
+			{
+				auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
+				return static_cast<Edit_Mode>(animCanvas->mInputController->getMode());
+			}
+		}
+		return Edit_Mode::EDIT_MODE_NONE;
+	}
+
+	EDIT_API void SetEditMode(CANVAS_ptr canvas, Edit_Mode editMode)
+	{
+		if (editMode == Edit_Mode::EDIT_MODE_EDIT_PATH)
+		{
+			assert(true);
+			return;
+		}
+
+		if (canvas)
+		{
+			auto* rawcanvas = static_cast<CanvasWrapper*>(canvas);
+			if (rawcanvas->type() == CanvasType::AnimationCreator)
+			{
+				auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
+				animCanvas->mInputController->setMode(static_cast<EditModeType>(editMode));
+			}
+		}
+	}
+
+	EDIT_API void SetPathEditMode(CANVAS_ptr canvas, ENTITY_ID id, int pathIdx)
+	{
+		if (canvas)
+		{
+			auto* rawcanvas = static_cast<CanvasWrapper*>(canvas);
+			if (rawcanvas->type() == CanvasType::AnimationCreator)
+			{
+				auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
+				if (SelectionManager::EditPath(animCanvas, GetEntity(id), pathIdx))
+				{
+					animCanvas->mInputController->setMode(static_cast<EditModeType>(Edit_Mode::EDIT_MODE_EDIT_PATH));
+				}
+			}
+		}
 	}
 
 	EDIT_API ENTITY_ID CreateRectPathEntity(SCENE_ID id, float minX, float minY, float w, float h)
@@ -74,7 +125,7 @@ extern "C"
 		return entity.getComponent<IDComponent>().id;
 	}
 
-	EDIT_API Edit_Result UpdateEntityTransformCurrentFrame(ENTITY_ID id, UpdateEntityTransform* transform, bool isEnd)
+	EDIT_API Edit_Result UpdateEntityTransformCurrentFrame(ENTITY_ID id, Edit_Transform* transform, bool isEnd)
 	{
 		auto entity = Scene::FindEntity(id);
 		if (entity.isNull())
@@ -468,6 +519,81 @@ extern "C"
 			}
 		}
 	}
+
+	EDIT_API Edit_Result
+	Internal_Path_AddPathPoint(ENTITY_ID id, int pathIndex, Edit_PathPoint* pathPoint, bool isAddMode, int pointIndex)
+	{
+		auto entity = Scene::FindEntity(id);
+		if (entity.isNull())
+		{
+			return EDIT_RESULT_INVALID_ENTITY;
+		}
+		if (entity.hasComponent<PathListComponent>() == false)
+		{
+			return EDIT_RESULT_TYPE_MISMATCH;
+		}
+		if (pathPoint == nullptr)
+		{
+			return EDIT_RESULT_FAIL;
+		}
+		if (pointIndex >= 0)
+		{
+			// todo: add path point
+			assert(true);
+		}
+
+		auto* path = entity.getPath<RawPath>(pathIndex);
+		if (path == nullptr)
+		{
+			return EDIT_RESULT_FAIL;
+		}
+
+		PathPoint p{
+			.localPosition = {pathPoint->localPosition[0], pathPoint->localPosition[1]},
+			.deltaLeftControlPosition = {pathPoint->leftControlRelPosition[0], pathPoint->leftControlRelPosition[1]},
+			.deltaRightControlPosition = {pathPoint->rightControlRelPosition[0], pathPoint->rightControlRelPosition[1]},
+			.type = static_cast<PathPoint::Command>(pathPoint->type)};
+
+		path->path.push_back(p);
+		entity.setDirty(Dirty::Type::Path);
+	}
+
+	EDIT_API Edit_Result Internal_Path_UpdatePathPoint(ENTITY_ID id,
+													   int pathIndex,
+													   Edit_PathPoint* pathPoint,
+													   bool isAddMode,
+													   int pointIndex)
+	{
+		auto entity = Scene::FindEntity(id);
+		if (entity.isNull())
+		{
+			return EDIT_RESULT_INVALID_ENTITY;
+		}
+		if (entity.hasComponent<PathListComponent>() == false)
+		{
+			return EDIT_RESULT_TYPE_MISMATCH;
+		}
+		if (pathPoint == nullptr)
+		{
+			return EDIT_RESULT_FAIL;
+		}
+
+		auto* path = entity.getPath<RawPath>(pathIndex);
+
+		if (path == nullptr || pointIndex >= path->path.size() || pointIndex < 0)
+		{
+			return EDIT_RESULT_FAIL;
+		}
+		auto& p = path->path[pointIndex];
+
+		p.localPosition = {pathPoint->localPosition[0], pathPoint->localPosition[1]};
+		p.deltaLeftControlPosition = {pathPoint->leftControlRelPosition[0], pathPoint->leftControlRelPosition[1]};
+		p.deltaRightControlPosition = {pathPoint->rightControlRelPosition[0], pathPoint->rightControlRelPosition[1]};
+		p.type = static_cast<PathPoint::Command>(pathPoint->type);
+
+		entity.setDirty(Dirty::Type::Path);
+	}
+
 #ifdef __cplusplus
 }	 // extern "C"
 #endif

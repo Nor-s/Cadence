@@ -109,6 +109,7 @@ void UIShape::moveTo(const Vec2& xy)
 	auto& transform = mEntity.getComponent<TransformComponent>();
 	transform.localPosition = xy;
 	mEntity.update();
+	mEntity.setDirty(Dirty::Type::Transform);
 
 	auto& shape = mEntity.getComponent<ShapeComponent>();
 	mObbPoints = GetObb(shape.shape);
@@ -117,6 +118,7 @@ void UIShape::moveByDelta(const Vec2& delta)
 {
 	mEntity.moveByDelta(delta);
 	mEntity.update();
+	mEntity.setDirty(Dirty::Type::Transform);
 
 	auto& shape = mEntity.getComponent<ShapeComponent>();
 	mObbPoints = GetObb(shape.shape);
@@ -205,7 +207,8 @@ bool UIShape::onMoveMouse(const Vec2& xy)
 		fill.color = currentStateColor->strokeColor;
 		fill.alpha = currentStateColor->strokeAlpha;
 	}
-	mEntity.updateShapeAtt();
+	// mEntity.updateShapeAtt();
+	mEntity.setDirty(Dirty::Type::Path);
 
 	return false;
 }
@@ -222,7 +225,8 @@ void UIShape::updatePath(PathPoints pathPoints)
 		}
 		path->path = pathPoints;
 		init();
-		Update(mEntity.getComponent<ShapeComponent>(), *path);
+		mEntity.setDirty(Dirty::Type::Path);
+		// Update(mEntity.getComponent<ShapeComponent>(), *path);
 	}
 }
 

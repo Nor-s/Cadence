@@ -15,6 +15,8 @@
 #include "editMode/addPathMode.h"
 
 #include "interface/editInterface.h"
+#include "selection/selectionManager.h"
+
 namespace core
 {
 
@@ -153,7 +155,6 @@ bool AnimationCreatorInputController::onMoveCanvas(const InputValue& inputValue)
 	auto delta = inputValue.getDelta<Vec2>();
 	rCanvas->mCanvasScene->mSceneEntity.moveByDelta(delta);
 
-	LOG_INFO("{} {}", delta.x, delta.y);
 	return false;
 }
 
@@ -193,7 +194,6 @@ void AnimationCreatorInputController::applyEditMode()
 		}
 		case EditModeType::EDIT_PEN_PATH:
 		{
-			// TODO
 			mEditMode = nullptr;
 			break;
 		}

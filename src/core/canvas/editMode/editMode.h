@@ -10,9 +10,9 @@ class Scene;
 class AnimationCreatorCanvas;
 class InputController;
 
-enum class EditModeType
+enum class EditModeType : int32_t
 {
-	NONE,
+	NONE = 0,
 	PICK,
 	ADD_SQUARE,
 	ADD_ELLIPSE,

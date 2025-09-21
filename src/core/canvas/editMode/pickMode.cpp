@@ -40,7 +40,7 @@ bool PickMode::onDoubleClickLeftMouse(const InputValue& inputValue)
 		mContext.pickInfo.excludeIds.insert(targetId);
 		return true;
 	}
-	else 
+	else
 	{
 		SelectionManager::Clear(rCanvas);
 	}
@@ -92,9 +92,6 @@ bool PickMode::onEndLeftMouse(const InputValue& inputValue)
 }
 bool PickMode::onMoveMouse(const InputValue& inputValue)
 {
-	// todo: destroy/create -> hide/show
-	
-
 	PickInfo pickInfo;
 	bool isPick = Pick(rCanvas->mMainScene->getScene(), pickInfo, inputValue.get<Vec2>());
 	if (isPick && pickInfo.type == PickInfo::Type::Shape)
@@ -102,7 +99,7 @@ bool PickMode::onMoveMouse(const InputValue& inputValue)
 		auto target = pickInfo.currentSelectedScene->getEntityById(pickInfo.currentSelectedPaint->id);
 		SelectionManager::Hover(rCanvas, target);
 	}
-	else 
+	else
 	{
 		SelectionManager::Hover(rCanvas, Entity());
 	}

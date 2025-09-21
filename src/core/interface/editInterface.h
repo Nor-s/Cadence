@@ -30,38 +30,44 @@ extern "C"
 		float scaleX;
 		float scaleY;
 		float rotation;
-	} UpdateEntityTransform;
+	} Edit_Transform;
 
-	typedef enum PathProp
+	typedef enum 
 	{
-		// Rect
-		PATH_PROP_RECT_RADIUS,
-		PATH_PROP_RECT_POSITION,	// vec2
-		PATH_PROP_RECT_SCALE,		// vec2
+		EDIT_PathPointType_LineTo = 0,
+		EDIT_PathPointType_MoveTo = 1,
+		EDIT_PathPointType_CubicTo = 2,
+		EDIT_PathPointType_Close = 3
+	} Edit_PathPointType;
 
-		// Ellipse
-		PATH_PROP_ELLIPSE_POSITION,	   // vec2
-		PATH_PROP_ELLIPSE_SCALE,	   // vec2
+	typedef struct Edit_PathPoint
+	{
+		float localPosition[2] = {0.0f, 0.0f};
+		float leftControlRelPosition[2] = {0.0f, 0.0f};
+		float rightControlRelPosition[2] = {0.0f, 0.0f};
+		Edit_PathPointType type = EDIT_PathPointType_LineTo;
+	} Edit_PathPoint;
 
-		// Polygon
-		PATH_PROP_POLY_POINTS,			// int
-		PATH_PROP_POLY_ROTATION,		// float
-		PATH_PROP_POLY_OUTER_RADIUS,	// float
-		PATH_PROP_POLY_POSITION,		// vec2
-
-		// Star
-		PATH_PROP_STAR_POINTS,			// int
-		PATH_PROP_STAR_ROTATION,		// float
-		PATH_PROP_STAR_OUTER_RADIUS,	// float
-		PATH_PROP_STAR_INNER_RADIUS,	// float
-		PATH_PROP_STAR_POSITION,		// vec2
-	} PathProp;
+	typedef enum
+	{
+		EDIT_MODE_NONE = 0,
+		EDIT_MODE_PICK = 1,
+		EDIT_MODE_ADD_SQUARE = 2,
+		EDIT_MODE_ADD_ELLIPSE = 3,
+		EDIT_MODE_ADD_POLYGON = 4,
+		EDIT_MODE_ADD_STAR = 5,
+		EDIT_MODE_ADD_PEN_PATH = 6,
+		EDIT_MODE_EDIT_PATH = 7,
+	} Edit_Mode;
 
 	/**
 	 * temp code
 	 */
 	EDIT_API void FocusCurrentCanvas(CANVAS_ptr canvs);
 	EDIT_API CANVAS_ptr GetCurrentAnimCanvas();
+	EDIT_API Edit_Mode GetCurrentEditMode(CANVAS_ptr canvas);
+	EDIT_API void SetEditMode(CANVAS_ptr canvas, Edit_Mode editMode);
+	EDIT_API void SetPathEditMode(CANVAS_ptr canvas, ENTITY_ID id, int pathIdx);
 
 	/***
 	 * todo: UNDO/REDO
@@ -71,7 +77,7 @@ extern "C"
 	EDIT_API ENTITY_ID CreatePolygonPathEntity(SCENE_ID id, float minX, float minY, float w, float h);
 	EDIT_API ENTITY_ID CreateStarPathEntity(SCENE_ID id, float minX, float minY, float w, float h);
 
-	EDIT_API Edit_Result UpdateEntityTransformCurrentFrame(ENTITY_ID id, UpdateEntityTransform* transform, bool isEnd);
+	EDIT_API Edit_Result UpdateEntityTransformCurrentFrame(ENTITY_ID id, Edit_Transform* transform, bool isEnd);
 	EDIT_API Edit_Result UpdateEntityRotationCurrentFrame(ENTITY_ID id, float x, bool isEnd);
 	EDIT_API Edit_Result UpdateEntityPositionCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
 	EDIT_API Edit_Result UpdateEntityScaleCurrentFrame(ENTITY_ID id, float x, float y, bool isEnd);
@@ -163,6 +169,18 @@ extern "C"
 	EDIT_API void UpdateEntityEnd(ENTITY_ID id);
 
 	EDIT_API void RemoveSelection();
+
+	// path edit
+	EDIT_API Edit_Result Internal_Path_AddPathPoint(ENTITY_ID id,
+													int pathIndex,
+													Edit_PathPoint* pathPoint,
+													bool isAddMode,
+													int pointIndex = -1);
+	EDIT_API Edit_Result Internal_Path_UpdatePathPoint(ENTITY_ID id,
+													   int pathIndex,
+													   Edit_PathPoint* pathPoint,
+													   bool isAddMode,
+													   int pointIndex);
 
 #ifdef __cplusplus
 }	 // extern "C"

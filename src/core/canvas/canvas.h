@@ -18,7 +18,7 @@ enum class CanvasType
 {
 	Base,
 	Example,
-	LottieCreator
+	AnimationCreator
 };
 
 // todo: delete move, copy

@@ -37,25 +37,26 @@ void Entity::move(const Vec2& pos)
 
 void Entity::hide()
 {
-	if (mHandle == entt::null || mIsHide == true || hasComponent<ShapeComponent>() == false)
+	if (mHandle == entt::null)
 		return;
-
-	if (auto& shape = getComponent<ShapeComponent>(); shape.shape != nullptr)
-	{
-		shape.shape->visible(false);
-		mIsHide = true;
-	}
+	getComponent<VisibleComponent>().isVisible = false;
+	setDirty(Dirty::Type::Visible);
 }
 void Entity::show()
 {
-	if (mHandle == entt::null || mIsHide == false || hasComponent<ShapeComponent>() == false)
+	if (mHandle == entt::null)
 		return;
 
-	if (auto& shape = getComponent<ShapeComponent>(); shape.shape != nullptr)
+	getComponent<VisibleComponent>().isVisible = true;
+	setDirty(Dirty::Type::Visible);
+}
+bool Entity::isHidden() const
+{
+	if (mHandle == entt::null)
 	{
-		shape.shape->visible(true);
-		mIsHide = false;
+		return true;
 	}
+	return getComponent<VisibleComponent>().isVisible == false;
 }
 void Entity::setDirty(Dirty::Type dirtyType)
 {

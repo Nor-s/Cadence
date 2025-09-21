@@ -100,7 +100,7 @@ void ImGuiCanvasView::onDraw(std::string_view title, core::CanvasWrapper& canvas
 
 void ImGuiCanvasView::onDrawSceneInspect()
 {
-	if (gCurrentCanvas == nullptr || gCurrentCanvas->type() != core::CanvasType::LottieCreator)
+	if (gCurrentCanvas == nullptr || gCurrentCanvas->type() != core::CanvasType::AnimationCreator)
 		return;
 
 	auto* lottieCanvas = static_cast<core::AnimationCreatorCanvas*>(gCurrentCanvas);
@@ -345,6 +345,9 @@ void ImGuiCanvasView::drawComponent(core::Entity& entity)
 				case core::IPath::Type::Rect:
 					drawRectComponent(entity, *static_cast<core::RectPath*>(p), i);
 					break;
+				case core::IPath::Type::Path:
+					drawPathComponent(entity, *static_cast<core::RawPath*>(p), i);
+					break;
 			}
 			ImGui::PopID();
 		}
@@ -556,6 +559,17 @@ void ImGuiCanvasView::drawStarPolygonComponent(core::Entity& entity, core::StarP
 		//	UpdateEntityStarPolygonPathPositionCurrentFrame(entity.getId(), pos.x, pos.y,
 		//													/*finished=*/wasStarPosEdit && !isStarPosEdit);
 		//}
+	}
+}
+
+void ImGuiCanvasView::drawPathComponent(core::Entity& entity, core::RawPath& path, int idx)
+{
+	if (ImGui::CollapsingHeader("Path"))
+	{
+		if (ImGui::Button("Edit Path"))
+		{
+			SetEditMode(gCurrentCanvas, Edit_Mode::EDIT_MODE_EDIT_PATH);
+		}
 	}
 }
 

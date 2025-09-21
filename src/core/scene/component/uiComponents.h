@@ -3,6 +3,7 @@
 
 #include <memory>
 #include "scene/ui/bbox.h"
+#include "scene/ui/editPath.h"
 
 namespace core
 {
@@ -10,6 +11,11 @@ namespace core
 struct BBoxControlComponent
 {
 	std::unique_ptr<BBox> bbox{nullptr};
+};
+
+struct EditPathControlComponent
+{
+	std::unique_ptr<EditPath> editPath{nullptr};
 };
 
 }	 // namespace core

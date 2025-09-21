@@ -90,4 +90,15 @@ inline T* Entity::findPath(int startIdx)
 	return nullptr;
 }
 
+template <typename T>
+inline T* Entity::getPath(int idx)
+{
+	auto& paths = getComponent<PathListComponent>().paths;
+	if (PathTag<T>::type == paths[idx]->type())
+	{
+		return static_cast<T*>(paths[idx].get());
+	}
+	return nullptr;
+}
+
 }	 // namespace core

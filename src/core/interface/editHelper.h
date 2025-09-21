@@ -7,7 +7,8 @@
 namespace core
 {
 class Scene;
-}
+class PathPoint;
+}	 // namespace core
 
 core::Scene* FindScene(SCENE_ID id);
 int CurrentFrameNo();
@@ -47,5 +48,7 @@ Edit_Result SetProp(ENTITY_ID id,
 
 	return EDIT_RESULT_SUCCESS;
 }
+
+Edit_PathPoint ToEdit_PathPoint(const core::PathPoint& p);
 
 #endif

@@ -55,3 +55,12 @@ bool ShouldAddKeyframe()
 {
 	return IsPlaybackStopped();
 }
+
+Edit_PathPoint ToEdit_PathPoint(const core::PathPoint& p)
+{
+	Edit_PathPoint editP{.localPosition = {p.localPosition.x, p.localPosition.y},
+						 .leftControlRelPosition = {p.deltaLeftControlPosition.x, p.deltaLeftControlPosition.y},
+						 .rightControlRelPosition = {p.deltaRightControlPosition.x, p.deltaRightControlPosition.y},
+						 .type = static_cast<Edit_PathPointType>(p.type)};
+	return editP;
+}

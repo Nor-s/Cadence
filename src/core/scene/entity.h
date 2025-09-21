@@ -26,6 +26,7 @@ struct Dirty
 		Transform = 1 << 1,
 		Fill = 1 << 2,
 		Stroke = 1 << 3,
+		Visible = 1 << 4,
 		All = 0xFFFF
 	};
 	Type mask{0};
@@ -42,6 +43,10 @@ inline static bool HasDirty(Dirty& dirty, Dirty::Type type)
 	return (static_cast<uint32_t>(dirty.mask) & static_cast<uint32_t>(type)) != 0;
 }
 
+inline static Dirty::Type operator|(Dirty::Type lhs, Dirty::Type rhs)
+{
+	return static_cast<Dirty::Type>(static_cast<uint32_t>(lhs) | static_cast<uint32_t>(rhs));
+}
 inline static Dirty::Type operator|(Dirty& dirty, Dirty::Type type)
 {
 	return static_cast<Dirty::Type>(static_cast<uint32_t>(dirty.mask) | static_cast<uint32_t>(type));
@@ -68,10 +73,7 @@ public:
 	void move(const Vec2& pos);
 	void hide();
 	void show();
-	bool isHidden() const
-	{
-		return mIsHide;
-	}
+	bool isHidden() const;
 	void setDirty(Dirty::Type dirtyType = Dirty::Type::All);
 
 	void update();
@@ -107,6 +109,9 @@ public:
 	template <typename T>
 	T* findPath(int startIdx = 0);
 
+	template <typename T>
+	T* getPath(int idx);
+
 	const EntityID getId() const;
 	const bool isNull() const;
 
@@ -121,7 +126,6 @@ public:
 
 private:
 	core::Scene* rScene{nullptr};
-	bool mIsHide{false};
 };
 
 }	 // namespace core

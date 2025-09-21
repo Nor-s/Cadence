@@ -18,7 +18,7 @@ public:
 
 	CanvasType type() override
 	{
-		return CanvasType::LottieCreator;
+		return CanvasType::AnimationCreator;
 	}
 
 	InputController* getInputController() override;

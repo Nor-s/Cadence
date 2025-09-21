@@ -69,6 +69,7 @@ Entity Scene::CreateEntity(Scene* scene, std::string_view name, Entity parent)
 	entity.addComponent<NameComponent>(name.empty() ? "Entity" : name);
 	entity.addComponent<RelationshipComponent>();
 	entity.addComponent<Dirty>();
+	entity.addComponent<VisibleComponent>();
 	scene->gEntityMap[id] = entity;
 
 	id++;
@@ -249,8 +250,6 @@ Entity Scene::createStarFillLayer(Vec2 minXy, Vec2 wh)
 
 Entity Scene::createPathLayer(PathPoints path)
 {
-	assert(path.empty() == false);
-
 	auto entity = CreateEntity(this, "Path Layer", mSceneEntity);
 	auto& transform = entity.getComponent<TransformComponent>();
 	auto& id = entity.getComponent<IDComponent>();
@@ -262,7 +261,11 @@ Entity Scene::createPathLayer(PathPoints path)
 	stroke.width = CommonSetting::Width_DefaultPathLine;
 
 	transform.anchorPoint = {0.0f, 0.0f};
-	transform.localPosition = path[0].localPosition;
+
+	if (!path.empty())
+	{
+		transform.localPosition = path[0].localPosition;
+	}
 
 	for (auto& point : path)
 	{
@@ -511,23 +514,33 @@ bool Scene::onUpdate()
 
 		if (e.hasComponent<ShapeComponent>())
 		{
+			auto& visible = e.getComponent<VisibleComponent>();
 			auto& shape = e.getComponent<ShapeComponent>();
 			if (HasDirty(dirty, Dirty::Type::Transform))
 			{
 				Update(shape, e.getComponent<TransformComponent>());
 			}
 			if (HasDirty(dirty, Dirty::Type::Path) || HasDirty(dirty, Dirty::Type::Fill) ||
-				HasDirty(dirty, Dirty::Type::Stroke))
+				HasDirty(dirty, Dirty::Type::Stroke) || HasDirty(dirty, Dirty::Type::Visible))
 			{
-				if (e.getComponent<PathListComponent>().paths.empty())
+				bool isPathUpdate = true;
+				if (e.getComponent<PathListComponent>().paths.empty() && visible.isVisible)
 				{
+					isPathUpdate = false;
 					shape.shape->visible(false);
 				}
-				else
+				else if (visible.isVisible && !shape.shape->visible())
 				{
 					shape.shape->visible(true);
-					e.updateShapePath();
 				}
+				else if (HasDirty(dirty, Dirty::Type::Visible))
+				{
+					shape.shape->visible(visible.isVisible);
+				}
+
+				if (isPathUpdate)
+					e.updateShapePath();
+
 				if (e.hasComponent<SolidFillComponent>())
 				{
 					Update(shape, e.getComponent<SolidFillComponent>());

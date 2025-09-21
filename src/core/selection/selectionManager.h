@@ -9,6 +9,12 @@ namespace core
 class AnimationCreatorCanvas;
 class SelectionManager
 {
+	struct EditPathInfo
+	{
+		Entity entity;
+		int pathIndex;
+	};
+
 public:
 	static void Select(AnimationCreatorCanvas* canvas, Entity entity);
 	static void Hover(AnimationCreatorCanvas* canvas, Entity entity);
@@ -17,14 +23,19 @@ public:
 	static void Update();
 	static void Update(AnimationCreatorCanvas* canvas);
 	static bool IsSelected(AnimationCreatorCanvas* canvas, int id);
+	static bool EditPath(AnimationCreatorCanvas* canvas, Entity entity, int pathIdx);
 
 private:
 	static SelectionManager& Get();
 	SelectionManager() = default;
 
+	void updateSelect(AnimationCreatorCanvas* canvas);
+	void updateHover(AnimationCreatorCanvas* canvas);
+
 private:
 	std::unordered_map<AnimationCreatorCanvas*, std::vector<Entity> > mSelectList;
 	std::unordered_map<AnimationCreatorCanvas*, Entity> mHover;
+	std::unordered_map<AnimationCreatorCanvas*, int> mEditPath;
 };
 
 }	 // namespace core

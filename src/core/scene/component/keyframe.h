@@ -165,6 +165,42 @@ using FloatKeyFrame = Keyframes<float>;
 using VectorKeyFrame = Keyframes<Vec2>;
 using ColorKeyFrame = Keyframes<Vec3>;
 
+struct PathPoint
+{
+	enum class Command : int
+	{
+		LineTo = 0,
+		MoveTo = 1,
+		CubicTo = 2,
+		Close =3
+	};
+
+	Vec2 localPosition{0.0f, 0.0f};
+	Vec2 deltaLeftControlPosition{0.0f, 0.0f};
+	Vec2 deltaRightControlPosition{0.0f, 0.0f};
+	Command type{Command::LineTo};
+
+	VectorKeyFrame localPositionKeyframe;
+	VectorKeyFrame deltaLeftControlPositionKeyframe;
+	VectorKeyFrame deltaRightControlPositionKeyframe;
+
+	bool update(float frameNo)
+	{
+		bool changed = false;
+
+		UPDATE_KEYFRAME(localPositionKeyframe, localPosition, frameNo, changed);
+		if (type != Command::LineTo)
+		{
+			UPDATE_KEYFRAME(deltaLeftControlPositionKeyframe, deltaLeftControlPosition, frameNo, changed);
+			UPDATE_KEYFRAME(deltaRightControlPositionKeyframe, deltaRightControlPosition, frameNo, changed);
+		}
+
+		return changed;
+	}
+};
+
+using PathPoints = std::vector<PathPoint>;
+
 }	 // namespace core
 
 #endif

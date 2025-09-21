@@ -11,8 +11,6 @@ AddPathMode::AddPathMode(AnimationCreatorCanvas* canvas)
 {
 	rCanvas = canvas;
 	init();
-
-	onInputAttach({1.0f, 1.0f});
 }
 
 AddPathMode::~AddPathMode()
@@ -32,27 +30,21 @@ bool AddPathMode::onStarClickLefttMouse(const InputValue& inputValue)
 		PathPoints pathPoints;
 		auto& world = rCanvas->mMainScene->mSceneEntity.getComponent<WorldTransformComponent>();
 		auto pos = start * world.inverseWorldTransform;
-		pathPoints.push_back(PathPoint{.localPosition = pos, .type = PathPoint::Command::MoveTo});
 		mTargetPath = rCanvas->mMainScene->createPathLayer(pathPoints);
-		mEditPath = std::make_unique<EditPath>(rCanvas->mControlScene.get(), mTargetPath, true);
+		mEditPath =
+			std::make_unique<EditPath>(rCanvas->getInputController(), rCanvas->mControlScene.get(), mTargetPath);
 	}
 	return mEditPath->onStartClickLeftMouse(inputValue);
 }
 
 bool AddPathMode::onDragLeftMouse(const InputValue& inputValue)
 {
-	if (!mEditPath)
-		return false;
-
-	return mEditPath->onDragLeftMouse(inputValue);
+	return false;
 }
 
 bool AddPathMode::onMoveMouse(const InputValue& inputValue)
 {
-	if (!mEditPath)
-		return false;
-
-	return mEditPath->onMoveMouse(inputValue);
+	return false;
 }
 
 bool AddPathMode::onEndLeftMouse(const InputValue& inputValue)
@@ -60,16 +52,21 @@ bool AddPathMode::onEndLeftMouse(const InputValue& inputValue)
 	if (!mEditPath)
 		return false;
 
-	if (mEditPath->onEndLeftMouse(inputValue))
 	{
+		// todo: this logic to edit path?
 		// mTargetPath is Delete when Change Edit Mode
 		auto* rawPath = static_cast<RawPath*>(mTargetPath.getComponent<PathListComponent>().paths[0].get());
+		rawPath->path.push_back(PathPoint{.type = PathPoint::Command::Close});
+		if (!mTargetPath.hasComponent<SolidFillComponent>())
+			mTargetPath.addComponent<SolidFillComponent>();
 		Resolve(mTargetPath.getComponent<TransformComponent>(), *rawPath);
-		mTargetPath.setDirty(Dirty::Type::Transform);
+
+		mTargetPath.setDirty(Dirty::Type::Path | Dirty::Type::Transform);
+
 		mTargetPath = Entity();
-		return true;
 	}
-	return false;
+	return true;
+	// return false;
 }
 
 bool AddPathMode::onInputAttach(const InputValue& inputValue)
@@ -88,10 +85,6 @@ void AddPathMode::init()
 
 void AddPathMode::onUpdate()
 {
-	if (mEditPath)
-	{
-		mEditPath->onUpdate();
-	}
 }
 
 }	 // namespace core
