@@ -192,15 +192,15 @@ struct TransformComponent
 
 struct WorldTransformComponent
 {
+	Entity owner;
+	Entity parent;
 	const TransformComponent* localTransform;
-	const WorldTransformComponent* parentTransform;
+	const WorldTransformComponent* parentTransform = nullptr;
 	tvg::Matrix worldTransform;
 	tvg::Matrix inverseWorldTransform;
 	Vec2 worldPosition;
 
-	WorldTransformComponent() = default;
-	WorldTransformComponent(TransformComponent& local, WorldTransformComponent* parent = nullptr)
-		: localTransform(&local), parentTransform(parent)
+	WorldTransformComponent(Entity owner, Entity parent) : owner(owner), parent(parent)
 	{
 		identity(&worldTransform);
 		identity(&inverseWorldTransform);
@@ -209,6 +209,12 @@ struct WorldTransformComponent
 
 	void update()
 	{
+		parentTransform = nullptr;
+		localTransform = &owner.getComponent<TransformComponent>();
+		if (!parent.isNull())
+		{
+			parentTransform = &parent.getComponent<WorldTransformComponent>();
+		}
 		auto world = identity();
 		if (parentTransform)
 			world = update(parentTransform->worldTransform);

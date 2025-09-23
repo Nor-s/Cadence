@@ -157,12 +157,9 @@ void ImGuiCanvasView::drawAnimationCanvasProperties()
 	auto* animCanvas = static_cast<core::AnimationCreatorCanvas*>(canvas);
 	if (animCanvas)
 	{
-		auto select = animCanvas->mControlScene->findByComponent<core::BBoxControlComponent>();
-		if (!select.empty())
+		auto entity = core::SelectionManager::GetFirstSelectedEntity(animCanvas);
+		if (!entity.isNull())
 		{
-			auto& bbox = select.front().getComponent<core::BBoxControlComponent>().bbox;
-			auto entity = bbox->rTarget;
-
 			drawComponent(entity);
 		}
 	}
@@ -568,7 +565,7 @@ void ImGuiCanvasView::drawPathComponent(core::Entity& entity, core::RawPath& pat
 	{
 		if (ImGui::Button("Edit Path"))
 		{
-			SetEditMode(gCurrentCanvas, Edit_Mode::EDIT_MODE_EDIT_PATH);
+			SetPathEditMode(gCurrentCanvas, entity.getId(), idx);
 		}
 	}
 }

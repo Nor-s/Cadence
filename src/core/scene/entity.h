@@ -29,6 +29,7 @@ struct Dirty
 		Visible = 1 << 4,
 		All = 0xFFFF
 	};
+
 	Type mask{0};
 
 	Dirty& operator|=(Dirty::Type type)
@@ -67,6 +68,11 @@ public:
 	Entity(Scene* scene, uint32_t id);
 	Entity(Scene* scene);
 	virtual ~Entity() = default;
+
+	Scene* getScene()
+	{
+		return rScene;
+	}
 
 	void setScaleByDelta(const Vec2& delta);
 	void moveByDelta(const Vec2& delta);

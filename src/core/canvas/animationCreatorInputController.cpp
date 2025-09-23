@@ -166,7 +166,6 @@ bool AnimationCreatorInputController::onEndMoveCanvas(const InputValue& inputVal
 // todo: no reset unique_ptr
 void AnimationCreatorInputController::applyEditMode()
 {
-	RemoveSelection();
 	switch (mMode)
 	{
 		case EditModeType::NONE:

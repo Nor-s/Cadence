@@ -24,6 +24,7 @@ public:
 	void init();
 
 	void onUpdate();
+	void onTargetDirty(entt::registry& reg, entt::entity e);
 	bool onStartClickLeftMouse(const InputValue& inputValue);
 	bool onDragLeftMouse(const InputValue& inputValue);
 	bool onEndLeftMouse(const InputValue& inputValue);
@@ -57,6 +58,8 @@ private:
 	Vec2 mStartPoint{0.0f, 0.0f};
 	Vec2 mBeforePoint{0.0f, 0.0f};
 	Vec2 mCurrentPoint{0.0f, 0.0f};
+	Vec2 mMovePoint{0.0f, 0.0f};
+	bool mIsDirty = false;
 
 	// state
 	PathPoint::Command mCurrentEditType{PathPoint::Command::LineTo};

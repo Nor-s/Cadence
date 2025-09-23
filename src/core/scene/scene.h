@@ -82,6 +82,7 @@ public:
 
 	uint32_t mId;
 	Entity mSceneEntity;
+	Scene* rParentScene{nullptr};
 
 protected:
 	friend class Entity;
@@ -92,7 +93,6 @@ protected:
 	tvg::Scene* mTvgScene;
 	reactive_storage mStorage;
 	bool mIsDirty{false};
-	Scene* rParentScene{nullptr};
 };
 
 }	 // namespace core

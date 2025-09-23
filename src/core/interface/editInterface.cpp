@@ -66,6 +66,7 @@ extern "C"
 			if (rawcanvas->type() == CanvasType::AnimationCreator)
 			{
 				auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
+				SelectionManager::Clear(animCanvas);
 				animCanvas->mInputController->setMode(static_cast<EditModeType>(editMode));
 			}
 		}
@@ -79,7 +80,7 @@ extern "C"
 			if (rawcanvas->type() == CanvasType::AnimationCreator)
 			{
 				auto* animCanvas = static_cast<AnimationCreatorCanvas*>(canvas);
-				if (SelectionManager::EditPath(animCanvas, GetEntity(id), pathIdx))
+				if (SelectionManager::SetEditPath(animCanvas, GetEntity(id), pathIdx))
 				{
 					animCanvas->mInputController->setMode(static_cast<EditModeType>(Edit_Mode::EDIT_MODE_EDIT_PATH));
 				}
@@ -508,15 +509,15 @@ extern "C"
 		return;
 	}
 
-	EDIT_API void RemoveSelection()
+	EDIT_API void ClearSelection(CANVAS_ptr canvas)
 	{
-		if (gCurrentAnimCanvas)
+		if (canvas == nullptr)
+			return;
+
+		auto* rawcanvas = static_cast<CanvasWrapper*>(canvas);
+		if (rawcanvas->type() == CanvasType::AnimationCreator)
 		{
-			auto entities = gCurrentAnimCanvas->mControlScene->findByComponent<BBoxControlComponent>();
-			for (auto& entity : entities)
-			{
-				gCurrentAnimCanvas->mControlScene->destroyEntity(entity);
-			}
+			SelectionManager::Clear(static_cast<AnimationCreatorCanvas*>(canvas));
 		}
 	}
 

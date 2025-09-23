@@ -84,7 +84,12 @@ bool BBox::onStartClickLeftMouse(const InputValue& inputValue)
 		if (mControlBox[type]->onStartLeftDown(mStartPoint))
 		{
 			mBeforeTransform = rTarget.getComponent<TransformComponent>();
-			mBeforeWorldTransform = rTarget.getComponent<WorldTransformComponent>();
+			auto& world = rTarget.getComponent<WorldTransformComponent>();
+			mBeforeInvWorldTransform = world.inverseWorldTransform;
+			if (world.parentTransform)
+				mBeforeParentInvWorldTransform = world.parentTransform->inverseWorldTransform;
+			else
+				mBeforeParentInvWorldTransform = identity();
 			mCurrentControlType = ControlType(type);
 			return true;
 		}
@@ -159,7 +164,7 @@ void BBox::init()
 	};
 	auto moveBox = [this]()
 	{
-		auto inv = mBeforeWorldTransform.parentTransform->inverseWorldTransform;
+		auto inv = mBeforeParentInvWorldTransform;
 		auto diff = mCurrentPoint * inv - mBeforePoint * inv;
 		UpdateEntityDeltaPositionCurrentFrame(rTarget.getId(), diff.x, diff.y, false);
 
@@ -179,14 +184,14 @@ void BBox::init()
 	};
 	auto scaleLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeInvWorldTransform);
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
 		return true;
 	};
 	auto scaleXLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeInvWorldTransform);
 		ratio.y = 1.0f;
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
@@ -194,7 +199,7 @@ void BBox::init()
 	};
 	auto scaleYLambda = [this]()
 	{
-		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeWorldTransform.inverseWorldTransform);
+		auto ratio = ScaleFunc::GetRatio(mStartPoint, mCurrentPoint, mBeforeInvWorldTransform);
 		ratio.x = 1.0f;
 		const auto currentScale = Vec2{mBeforeTransform.scale.x * ratio.x, mBeforeTransform.scale.y * ratio.y};
 		UpdateEntityScaleCurrentFrame(rTarget.getId(), currentScale.x, currentScale.y, false);
@@ -319,7 +324,7 @@ void BBox::setVisible(bool isVisible)
 
 Vec2 BBox::getLocal(Vec2 worldPos)
 {
-	return worldPos * mBeforeWorldTransform.inverseWorldTransform;
+	return worldPos * mBeforeInvWorldTransform;
 }
 
 }	 // namespace core

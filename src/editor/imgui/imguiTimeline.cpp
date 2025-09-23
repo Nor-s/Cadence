@@ -83,11 +83,9 @@ void ImguiTimeline::drawSelectedEntityKeyframe()
 	auto* animCanvas = static_cast<core::AnimationCreatorCanvas*>(canvas);
 	if (animCanvas)
 	{
-		auto select = animCanvas->mControlScene->findByComponent<core::BBoxControlComponent>();
-		if (!select.empty())
+		auto entity = core::SelectionManager::GetFirstSelectedEntity(animCanvas);
+		if (!entity.isNull())
 		{
-			auto& bbox = select.front().getComponent<core::BBoxControlComponent>().bbox;
-			auto entity = bbox->rTarget;
 			drawEntityKeyframe(entity);
 		}
 	}

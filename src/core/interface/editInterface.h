@@ -32,7 +32,7 @@ extern "C"
 		float rotation;
 	} Edit_Transform;
 
-	typedef enum 
+	typedef enum
 	{
 		EDIT_PathPointType_LineTo = 0,
 		EDIT_PathPointType_MoveTo = 1,
@@ -168,7 +168,7 @@ extern "C"
 
 	EDIT_API void UpdateEntityEnd(ENTITY_ID id);
 
-	EDIT_API void RemoveSelection();
+	EDIT_API void ClearSelection(CANVAS_ptr canvas);
 
 	// path edit
 	EDIT_API Edit_Result Internal_Path_AddPathPoint(ENTITY_ID id,

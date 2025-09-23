@@ -85,6 +85,8 @@ void AddPathMode::init()
 
 void AddPathMode::onUpdate()
 {
+	if (mEditPath)
+		mEditPath->onUpdate();
 }
 
 }	 // namespace core

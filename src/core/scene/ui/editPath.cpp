@@ -41,6 +41,13 @@ EditPath::EditPath(InputController* inputController, core::Scene* scene, Entity 
 	if (mPathIndex == -1)
 		mPathIndex = 0;
 
+	if (!rTarget.isNull())
+	{
+		auto* scene = rTarget.getScene();
+		auto& registry = scene->rParentScene->getRegistry();
+		registry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
+	}
+
 	init();
 }
 EditPath::~EditPath()
@@ -48,6 +55,12 @@ EditPath::~EditPath()
 	for (auto& binding : mInputActionBindings)
 	{
 		rInputController->unbinding(binding);
+	}
+	if (!rTarget.isNull())
+	{
+		auto* scene = rTarget.getScene();
+		auto& registry = scene->rParentScene->getRegistry();
+		registry.on_update<Dirty>().disconnect<&EditPath::onTargetDirty>(*this);
 	}
 }
 void EditPath::init()
@@ -62,6 +75,26 @@ void EditPath::onUpdate()
 	{
 		return;
 	}
+	if (mIsDirty)
+	{
+		mIsDirty = false;
+		auto world = rTarget.getComponent<WorldTransformComponent>();
+		for (int i = 0; i < rPathPoints->size(); i++)
+		{
+			auto& point = rPathPoints->at(i);
+			if (point.type != PathPoint::Command::Close)
+			{
+				mPathPointUIs[i]->moveTo(point.localPosition * world.worldTransform);
+			}
+		}
+		updateControlPoint();
+		updatePreview(mMovePoint);
+	}
+}
+
+void EditPath::onTargetDirty(entt::registry& reg, entt::entity e)
+{
+	mIsDirty = true;
 }
 
 bool EditPath::onStartClickLeftMouse(const InputValue& inputValue)
@@ -163,17 +196,17 @@ bool EditPath::onEndLeftMouse(const InputValue& inputValue)
 
 bool EditPath::onMoveMouse(const InputValue& inputValue)
 {
-	auto point = inputValue.get<Vec2>();
+	mMovePoint = inputValue.get<Vec2>();
 	if (mIsAddMode)
 	{
-		updatePreview(point);
+		updatePreview(mMovePoint);
 	}
 	for (auto& ui : mPathPointUIs)
 	{
-		ui->onMoveMouse(point);
+		ui->onMoveMouse(mMovePoint);
 	}
-	mLeftControlUI->onMoveMouse(point);
-	mRightControlUI->onMoveMouse(point);
+	mLeftControlUI->onMoveMouse(mMovePoint);
+	mRightControlUI->onMoveMouse(mMovePoint);
 
 	return true;
 }
@@ -442,12 +475,12 @@ void EditPath::initPath()
 		return;
 
 	auto& transformComponent = rTarget.getComponent<WorldTransformComponent>();
-	auto world = transformComponent.worldPosition;
 	rPathPoints = &pathComponent->path;
 
 	for (auto& point : pathComponent->path)
 	{
-		addPathPointControl(point.localPosition + world);
+		if (point.type != PathPoint::Command::Close)
+			addPathPointControl(point.localPosition * transformComponent.worldTransform);
 	}
 }
 

@@ -7,6 +7,11 @@
 
 namespace editor
 {
+struct ToolButton
+{
+	const char* icon;
+	Edit_Mode mode;
+};
 
 void ImGuiShapePanel::draw(core::AnimationCreatorCanvas* canvas)
 {
@@ -20,23 +25,16 @@ void ImGuiShapePanel::draw(core::AnimationCreatorCanvas* canvas)
 	}
 	drawNormalMode(canvas);
 }
-
 void ImGuiShapePanel::drawNormalMode(core::AnimationCreatorCanvas* canvas)
 {
-	struct ToolButton
-	{
-		const char* icon;
-		core::EditModeType mode;
-	};
-
 	ToolButton toolButtons[] = {
-		{ICON_FA_HAND, core::EditModeType::NONE},
-		{ICON_KI_CURSOR, core::EditModeType::PICK},
-		{ICON_KI_BUTTON_SQUARE, core::EditModeType::ADD_SQUARE},
-		{ICON_KI_BUTTON_CIRCLE, core::EditModeType::ADD_ELLIPSE},
-		{ICON_KI_BUTTON_TRIANGLE, core::EditModeType::ADD_POLYGON},
-		{ICON_KI_STAR, core::EditModeType::ADD_STAR},
-		{ICON_KI_PENCIL, core::EditModeType::ADD_PEN_PATH},
+		{ICON_FA_HAND, EDIT_MODE_NONE},
+		{ICON_KI_CURSOR, EDIT_MODE_PICK},
+		{ICON_KI_BUTTON_SQUARE, EDIT_MODE_ADD_SQUARE},
+		{ICON_KI_BUTTON_CIRCLE, EDIT_MODE_ADD_ELLIPSE},
+		{ICON_KI_BUTTON_TRIANGLE, EDIT_MODE_ADD_POLYGON},
+		{ICON_KI_STAR, EDIT_MODE_ADD_STAR},
+		{ICON_KI_PENCIL, EDIT_MODE_ADD_PEN_PATH},
 	};
 
 	ImVec2 buttonSize(40.0f, 40.0f);
@@ -49,18 +47,18 @@ void ImGuiShapePanel::drawNormalMode(core::AnimationCreatorCanvas* canvas)
 	ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
 	ImGui::SetNextWindowSizeConstraints(windowSize, windowSize);
 
+	auto currentMode = GetCurrentEditMode(canvas);
+
 	if (ImGui::Begin(ICON_FA_TOOLBOX, nullptr, mWindowFlags))
 	{
 		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[ICON_BIG]);
-		auto* inputController = canvas->mInputController.get();
-		auto mode = inputController->getMode();
 		for (const auto& button : toolButtons)
 		{
-			if (ImGui::Helper::ToggleButtonImage(button.icon, mode == button.mode, buttonSize))
+			if (ImGui::Helper::ToggleButtonImage(button.icon, currentMode == button.mode, buttonSize))
 			{
-				if (mode != button.mode)
+				if (currentMode != button.mode)
 				{
-					inputController->setMode(button.mode);
+					SetEditMode(canvas, button.mode);
 				}
 			}
 		}
@@ -72,14 +70,8 @@ void ImGuiShapePanel::drawNormalMode(core::AnimationCreatorCanvas* canvas)
 
 void ImGuiShapePanel::drawEditMode(core::AnimationCreatorCanvas* canvas)
 {
-	struct ToolButton
-	{
-		const char* icon;
-		core::EditModeType mode;
-	};
-
 	ToolButton toolButtons[] = {
-		{ICON_KI_EXIT, core::EditModeType::PICK},
+		{ICON_KI_EXIT, EDIT_MODE_PICK},
 	};
 
 	ImVec2 buttonSize(40.0f, 40.0f);
@@ -92,18 +84,18 @@ void ImGuiShapePanel::drawEditMode(core::AnimationCreatorCanvas* canvas)
 	ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
 	ImGui::SetNextWindowSizeConstraints(windowSize, windowSize);
 
+	auto currentMode = GetCurrentEditMode(canvas);
+
 	if (ImGui::Begin(ICON_FA_TOOLBOX, nullptr, mWindowFlags))
 	{
 		ImGui::PushFont(ImGui::GetIO().Fonts->Fonts[ICON_BIG]);
-		auto* inputController = canvas->mInputController.get();
-		auto mode = inputController->getMode();
 		for (const auto& button : toolButtons)
 		{
-			if (ImGui::Helper::ToggleButtonImage(button.icon, mode == button.mode, buttonSize))
+			if (ImGui::Helper::ToggleButtonImage(button.icon, currentMode == button.mode, buttonSize))
 			{
-				if (mode != button.mode)
+				if (currentMode != button.mode)
 				{
-					inputController->setMode(button.mode);
+					SetEditMode(canvas, button.mode);
 				}
 			}
 		}

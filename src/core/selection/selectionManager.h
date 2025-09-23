@@ -23,14 +23,16 @@ public:
 	static void Update();
 	static void Update(AnimationCreatorCanvas* canvas);
 	static bool IsSelected(AnimationCreatorCanvas* canvas, int id);
-	static bool EditPath(AnimationCreatorCanvas* canvas, Entity entity, int pathIdx);
+	static bool SetEditPath(AnimationCreatorCanvas* canvas, Entity entity, int pathIdx);
+	static Entity GetFirstSelectedEntity(AnimationCreatorCanvas* canvas);
 
 private:
 	static SelectionManager& Get();
 	SelectionManager() = default;
 
-	void updateSelect(AnimationCreatorCanvas* canvas);
+	void updateSelect(AnimationCreatorCanvas* canvas, bool disable);
 	void updateHover(AnimationCreatorCanvas* canvas);
+	bool updateEditPath(AnimationCreatorCanvas* canvas);
 
 private:
 	std::unordered_map<AnimationCreatorCanvas*, std::vector<Entity> > mSelectList;

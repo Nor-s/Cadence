@@ -20,18 +20,23 @@ void Entity::setScaleByDelta(const Vec2& scaleDelta)
 {
 	auto& transform = getComponent<TransformComponent>();
 	transform.scale = transform.scale + scaleDelta;
+	updateTransform();
 	setDirty(Dirty::Type::Transform);
 }
 void Entity::moveByDelta(const Vec2& delta)
 {
 	auto& transform = getComponent<TransformComponent>();
+	auto& worldtransform = getComponent<WorldTransformComponent>();
+	auto* pt = &transform;
 	transform.localPosition = transform.localPosition + delta;
+	updateTransform();
 	setDirty(Dirty::Type::Transform);
 }
 void Entity::move(const Vec2& pos)
 {
 	auto& transform = getComponent<TransformComponent>();
 	transform.localPosition = pos;
+	updateTransform();
 	setDirty(Dirty::Type::Transform);
 }
 

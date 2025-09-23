@@ -106,10 +106,7 @@ UIShape::~UIShape()
 
 void UIShape::moveTo(const Vec2& xy)
 {
-	auto& transform = mEntity.getComponent<TransformComponent>();
-	transform.localPosition = xy;
-	mEntity.update();
-	mEntity.setDirty(Dirty::Type::Transform);
+	mEntity.move(xy);
 
 	auto& shape = mEntity.getComponent<ShapeComponent>();
 	mObbPoints = GetObb(shape.shape);
@@ -117,8 +114,6 @@ void UIShape::moveTo(const Vec2& xy)
 void UIShape::moveByDelta(const Vec2& delta)
 {
 	mEntity.moveByDelta(delta);
-	mEntity.update();
-	mEntity.setDirty(Dirty::Type::Transform);
 
 	auto& shape = mEntity.getComponent<ShapeComponent>();
 	mObbPoints = GetObb(shape.shape);

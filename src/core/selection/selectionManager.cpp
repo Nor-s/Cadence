@@ -3,9 +3,11 @@
 #include "scene/scene.h"
 #include "scene/component/components.h"
 #include "scene/component/uiComponents.h"
+#include "scene/ui/editPath.h"
 #include "scene/ui/bbox.h"
 
 #include "canvas/shapeUtil.h"
+#include "canvas/animationCreatorInputController.h"
 
 namespace core
 {
@@ -14,6 +16,10 @@ void SelectionManager::Select(AnimationCreatorCanvas* canvas, Entity entity)
 {
 	Clear(canvas);
 	Get().mSelectList[canvas].push_back(entity);
+	if (canvas->mInputController->getMode() != EditModeType::PICK)
+	{
+		canvas->mInputController->setMode(EditModeType::PICK);
+	}
 }
 void SelectionManager::Hover(AnimationCreatorCanvas* canvas, Entity entity)
 {
@@ -28,8 +34,9 @@ void SelectionManager::Push(AnimationCreatorCanvas* canvas, Entity entity)
 
 void SelectionManager::Update(AnimationCreatorCanvas* canvas)
 {
+	bool isEditPath = Get().updateEditPath(canvas);
 	Get().updateHover(canvas);
-	Get().updateSelect(canvas);
+	Get().updateSelect(canvas, isEditPath);
 }
 
 bool SelectionManager::IsSelected(AnimationCreatorCanvas* canvas, int id)
@@ -42,7 +49,7 @@ bool SelectionManager::IsSelected(AnimationCreatorCanvas* canvas, int id)
 	return false;
 }
 
-bool SelectionManager::EditPath(AnimationCreatorCanvas* canvas, Entity entity, int pathIdx)
+bool SelectionManager::SetEditPath(AnimationCreatorCanvas* canvas, Entity entity, int pathIdx)
 {
 	if (canvas == nullptr || entity.isNull() || entity.isHidden())
 	{
@@ -50,6 +57,17 @@ bool SelectionManager::EditPath(AnimationCreatorCanvas* canvas, Entity entity, i
 	}
 	Select(canvas, entity);
 	Get().mEditPath[canvas] = pathIdx;
+	return true;
+}
+
+Entity SelectionManager::GetFirstSelectedEntity(AnimationCreatorCanvas* canvas)
+{
+	auto& selectList = Get().mSelectList[canvas];
+	if (selectList.empty())
+	{
+		return Entity();
+	}
+	return selectList.at(0);
 }
 
 void SelectionManager::Update()
@@ -68,12 +86,12 @@ SelectionManager& SelectionManager::Get()
 	return sSelectionMgr;
 }
 
-void SelectionManager::updateSelect(AnimationCreatorCanvas* canvas)
+void SelectionManager::updateSelect(AnimationCreatorCanvas* canvas, bool disable)
 {
 	auto& entityList = mSelectList[canvas];
 	BBox* pBbox = nullptr;
 	Entity target;
-	if (entityList.empty() == false)
+	if (!disable && entityList.empty() == false)
 	{
 		target = entityList.front();
 	}
@@ -106,6 +124,41 @@ void SelectionManager::updateHover(AnimationCreatorCanvas* canvas)
 		hover[canvas] = canvas->mControlScene->createObb(points);
 		hover[canvas].getComponent<StrokeComponent>().color = CommonSetting::Color_DefaultHoverOutline;
 	}
+}
+
+bool SelectionManager::updateEditPath(AnimationCreatorCanvas* canvas)
+{
+	auto& entities = Get().mSelectList[canvas];
+	auto pathIndex = Get().mEditPath[canvas];
+	EditPath* editPath = nullptr;
+	Entity editPathEntity;
+
+	if (auto v = canvas->mControlScene->findByComponent<EditPathControlComponent>(); !v.empty())
+	{
+		editPathEntity = v[0];
+		editPath = editPathEntity.getComponent<EditPathControlComponent>().editPath.get();
+	}
+	if (pathIndex == -1 || entities.empty())
+	{
+		if (editPathEntity.isNull() == false)
+		{
+			canvas->mControlScene->destroyEntity(editPathEntity);
+		}
+		return false;
+	}
+	auto& targetEntity = entities.at(0);
+
+	if (editPath == nullptr)
+	{
+		auto entity = canvas->mControlScene->createEntity("editPath");
+		auto& editPathComponent = entity.addComponent<EditPathControlComponent>();
+		editPathComponent.editPath = std::make_unique<EditPath>(canvas->getInputController(),
+																canvas->mControlScene.get(), targetEntity, pathIndex);
+		editPath = editPathComponent.editPath.get();
+	}
+	editPath->onUpdate();
+
+	return true;
 }
 
 }	 // namespace core

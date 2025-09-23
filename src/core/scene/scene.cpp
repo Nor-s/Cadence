@@ -64,8 +64,7 @@ Entity Scene::CreateEntity(Scene* scene, std::string_view name, Entity parent)
 
 	entity.addComponent<IDComponent>(id);
 	auto& transform = entity.addComponent<TransformComponent>();
-	entity.addComponent<WorldTransformComponent>(
-		transform, parent.isNull() ? nullptr : &parent.getComponent<WorldTransformComponent>());
+	entity.addComponent<WorldTransformComponent>(entity, parent);
 	entity.addComponent<NameComponent>(name.empty() ? "Entity" : name);
 	entity.addComponent<RelationshipComponent>();
 	entity.addComponent<Dirty>();

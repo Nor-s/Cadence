@@ -62,7 +62,8 @@ private:
 private:
 	Scene* rScene{nullptr};
 	TransformComponent mBeforeTransform;
-	WorldTransformComponent mBeforeWorldTransform;
+	tvg::Matrix mBeforeInvWorldTransform;
+	tvg::Matrix mBeforeParentInvWorldTransform;
 
 	InputController* rInputController{nullptr};
 	Vec2 mStartPoint{0.0f, 0.0f};
