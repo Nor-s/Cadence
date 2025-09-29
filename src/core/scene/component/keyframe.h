@@ -75,23 +75,24 @@ struct Keyframes
 		return frames.end();
 	}
 
-	void add(uint32_t frameNo, const T& value)
+	void add(uint32_t frameNo, const T& value, bool isEnd = false)
 	{
 		auto it = std::find_if(frames.begin(), frames.end(),
 							   [frameNo](const auto& keyframe) { return frameNo == keyframe.frame; });
 		if (it == frames.end())
 		{
 			isEnable = true;
-			if (frames.empty() && frameNo != 0)
-			{
-				frames.push_back(Keyframe{.frame = 0, .value = value});
-			}
+			
 			frames.push_back(Keyframe{.frame = frameNo, .value = value});
 			std::sort(frames.begin(), frames.end());
 		}
 		else
 		{
 			it->value = value;
+		}
+		if (frames.size() == 1 && frameNo != 0 && isEnd)
+		{
+			add(0, value, isEnd);
 		}
 	}
 	Keyframe* left(float frameNo)
@@ -172,7 +173,7 @@ struct PathPoint
 		LineTo = 0,
 		MoveTo = 1,
 		CubicTo = 2,
-		Close =3
+		Close = 3
 	};
 
 	Vec2 localPosition{0.0f, 0.0f};

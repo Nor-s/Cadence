@@ -22,6 +22,19 @@ class Entity;
 
 namespace editor
 {
+
+template <typename T, typename F>
+void drawPopupForCurvEdit(T& kf, F func)
+{
+	ImGui::PushID(&kf);
+	if (ImGui::BeginPopupContextItem("ContextMenu"))
+	{
+		func(kf);
+		ImGui::EndPopup();
+	}
+	ImGui::PopID();
+}
+
 class ImguiTimeline : public ImGuiWindow
 {
 public:
@@ -30,18 +43,6 @@ public:
 	}
 	~ImguiTimeline() override = default;
 	void draw() override;
-
-	template <typename T, typename F>
-	void drawPopupForCurvEdit(T& kf, F func)
-	{
-		ImGui::PushID(&kf);
-		if (ImGui::BeginPopupContextItem("ContextMenu"))
-		{
-			func(kf);
-			ImGui::EndPopup();
-		}
-		ImGui::PopID();
-	}
 
 	template <typename T>
 	void drawKeyframe(const std::string& name, T& kf)

@@ -44,8 +44,10 @@ EditPath::EditPath(InputController* inputController, core::Scene* scene, Entity 
 	if (!rTarget.isNull())
 	{
 		auto* scene = rTarget.getScene();
-		auto& registry = scene->rParentScene->getRegistry();
+		auto& registry = scene->getRegistry();
+		auto& parentRegistry = scene->rParentScene->getRegistry();
 		registry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
+		parentRegistry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
 	}
 
 	init();
@@ -60,7 +62,9 @@ EditPath::~EditPath()
 	{
 		auto* scene = rTarget.getScene();
 		auto& registry = scene->rParentScene->getRegistry();
+		auto& parentRegistry = scene->rParentScene->getRegistry();
 		registry.on_update<Dirty>().disconnect<&EditPath::onTargetDirty>(*this);
+		parentRegistry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
 	}
 }
 void EditPath::init()
@@ -102,7 +106,7 @@ bool EditPath::onStartClickLeftMouse(const InputValue& inputValue)
 	mIsAddPoint = false;
 	rCurrentUi = nullptr;
 	mIsDrag = true;
-	mStartPoint = mBeforePoint = inputValue.get<Vec2>();
+	mMovePoint = mStartPoint = mCurrentPoint = mBeforePoint = inputValue.get<Vec2>();
 	mElasped = 0;
 
 	// move control points

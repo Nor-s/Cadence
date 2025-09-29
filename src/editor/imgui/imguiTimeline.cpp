@@ -98,6 +98,69 @@ void ImguiTimeline::drawEntityKeyframe(core::Entity& entity)
 
 	drawComponents(entity);
 }
+void _drawKeyframe(const std::string& name, core::RawPath* rawPath, uint32_t frame, ImRect dragRect)
+{
+	if (rawPath == nullptr || rawPath->path.size() < 1)
+	{
+		return;
+	}
+
+	if (ImGui::BeginNeoTimeline(name.c_str()))
+	{
+		drawPopupForCurvEdit(
+			rawPath,
+			[currentFrame = frame](core::RawPath* rawPath)
+			{
+				auto* left = rawPath->path[0].localPositionKeyframe.left(currentFrame);
+				auto* right = rawPath->path[0].localPositionKeyframe.right(currentFrame);
+				if (left && right)
+				{
+					auto& out = left->outTangent;
+					auto& in = right->inTangent;
+					float data[5]{out.x, out.y, in.x, in.y};
+					ImGui::Bezier("Edit Curve", data);
+					if (data[0] != out.x || data[1] != out.y || data[2] != in.x || data[3] != in.y)
+					{
+						for (auto& point : rawPath->path)
+						{
+							{
+								auto* posLeft = point.localPositionKeyframe.left(currentFrame);
+								auto* posRight = point.localPositionKeyframe.right(currentFrame);
+								posLeft->outTangent.x = data[0];
+								posLeft->outTangent.y = data[1];
+								posRight->inTangent.x = data[2];
+								posRight->inTangent.y = data[3];
+							}
+							{
+								auto* posLeft = point.deltaLeftControlPositionKeyframe.left(currentFrame);
+								auto* posRight = point.deltaLeftControlPositionKeyframe.right(currentFrame);
+								posLeft->outTangent.x = data[0];
+								posLeft->outTangent.y = data[1];
+								posRight->inTangent.x = data[2];
+								posRight->inTangent.y = data[3];
+							}
+							{
+								auto* posLeft = point.deltaRightControlPositionKeyframe.left(currentFrame);
+								auto* posRight = point.deltaRightControlPositionKeyframe.right(currentFrame);
+								posLeft->outTangent.x = data[0];
+								posLeft->outTangent.y = data[1];
+								posRight->inTangent.x = data[2];
+								posRight->inTangent.y = data[3];
+							}
+						}
+					}
+				}
+			});
+
+		auto& kf = rawPath->path[0].localPositionKeyframe;
+
+		for (auto& kf : kf)
+		{
+			ImGui::Keyframe(&kf.frame, dragRect, nullptr, nullptr);
+		}
+		ImGui::EndNeoTimeLine();
+	}
+}
 
 void ImguiTimeline::drawComponents(core::Entity& entity)
 {
@@ -205,13 +268,13 @@ void ImguiTimeline::drawComponents(core::Entity& entity)
 				}
 				case core::IPath::Type::Path:
 				{
-					/*			auto* p = static_cast<core::RawPath*>(base);
-								std::string label = "Raw Path #" + std::to_string(i);
-								if (ImGui::BeginNeoGroup(label.c_str(), &mEntityOpenState[(void*) p]))
-								{
-									ImGui::TextUnformatted("No keyframes available.");
-									ImGui::EndNeoGroup();
-								}*/
+					auto* p = static_cast<core::RawPath*>(base);
+					std::string label = "Raw Path #" + std::to_string(i);
+					if (ImGui::BeginNeoGroup(label.c_str(), &mEntityOpenState[(void*) p]))
+					{
+						_drawKeyframe("Points", p, mCurrentFrame, mDragRect);
+						ImGui::EndNeoGroup();
+					}
 					break;
 				}
 			}

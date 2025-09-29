@@ -401,7 +401,7 @@ extern "C"
 			auto& trk = entity.getComponent<TransformKeyframeComponent>();
 			auto& tr = entity.getComponent<TransformComponent>();
 			const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
-			trk.positionKeyframes.add(frameNo, tr.localPosition);
+			trk.positionKeyframes.add(frameNo, tr.localPosition, isEnd);
 		}
 
 		entity.setDirty(core::Dirty::Type::Transform);
@@ -424,7 +424,7 @@ extern "C"
 		if (gCurrentAnimCanvas && gCurrentAnimCanvas->mAnimator->mIsStop)
 		{
 			const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
-			solidFill.colorKeyframe.add(frameNo, solidFill.color);
+			solidFill.colorKeyframe.add(frameNo, solidFill.color, isEnd);
 		}
 		entity.setDirty(core::Dirty::Type::Fill);
 
@@ -443,7 +443,7 @@ extern "C"
 		if (gCurrentAnimCanvas && gCurrentAnimCanvas->mAnimator->mIsStop)
 		{
 			const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
-			solidFill.alphaKeyframe.add(frameNo, solidFill.alpha);
+			solidFill.alphaKeyframe.add(frameNo, solidFill.alpha, isEnd);
 		}
 		entity.setDirty(core::Dirty::Type::Fill);
 		return EDIT_RESULT_SUCCESS;
@@ -481,7 +481,7 @@ extern "C"
 		if (gCurrentAnimCanvas && gCurrentAnimCanvas->mAnimator->mIsStop)
 		{
 			const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
-			stroke.colorKeyframe.add(frameNo, stroke.color);
+			stroke.colorKeyframe.add(frameNo, stroke.color, isEnd);
 		}
 		entity.setDirty(core::Dirty::Type::Stroke);
 		return EDIT_RESULT_SUCCESS;
@@ -586,11 +586,27 @@ extern "C"
 			return EDIT_RESULT_FAIL;
 		}
 		auto& p = path->path[pointIndex];
-
 		p.localPosition = {pathPoint->localPosition[0], pathPoint->localPosition[1]};
 		p.deltaLeftControlPosition = {pathPoint->leftControlRelPosition[0], pathPoint->leftControlRelPosition[1]};
 		p.deltaRightControlPosition = {pathPoint->rightControlRelPosition[0], pathPoint->rightControlRelPosition[1]};
-		p.type = static_cast<PathPoint::Command>(pathPoint->type);
+		if (isAddMode)
+		{
+			p.type = static_cast<PathPoint::Command>(pathPoint->type);
+		}
+		else
+		{
+			const auto frameNo = gCurrentAnimCanvas->mAnimator->mCurrentFrameNo;
+
+			p.type = static_cast<PathPoint::Command>(pathPoint->type);
+			for (auto& point : path->path)
+			{
+				point.localPositionKeyframe.add(frameNo, {point.localPosition.x, point.localPosition.y});
+				point.deltaLeftControlPositionKeyframe.add(
+					frameNo, {point.deltaLeftControlPosition.x, point.deltaLeftControlPosition.y});
+				point.deltaRightControlPositionKeyframe.add(
+					frameNo, {point.deltaRightControlPosition.x, point.deltaRightControlPosition.y});
+			}
+		}
 
 		entity.setDirty(Dirty::Type::Path);
 	}
