@@ -557,6 +557,7 @@ extern "C"
 
 		path->path.push_back(p);
 		entity.setDirty(Dirty::Type::Path);
+		return EDIT_RESULT_SUCCESS;
 	}
 
 	EDIT_API Edit_Result Internal_Path_UpdatePathPoint(ENTITY_ID id,
@@ -609,6 +610,7 @@ extern "C"
 		}
 
 		entity.setDirty(Dirty::Type::Path);
+		return EDIT_RESULT_SUCCESS;
 	}
 
 #ifdef __cplusplus
