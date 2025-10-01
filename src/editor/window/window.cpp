@@ -5,7 +5,7 @@ namespace editor
 Window::Window()
 {
 	// Initialize SDL
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER) < 0)
+	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 	{
 		mInitialized = false;
 		SDL_Log("Could not initialize SDL: %s", SDL_GetError());

@@ -92,6 +92,15 @@ tvg_sandbox_src =[
 
 tvg_sandbox_inc = include_directories('src', tvg_config_path)
 
+cpp = meson.get_compiler('cpp')
+
+if cpp.get_id() == 'msvc'
+  add_project_arguments('/we4715', language: 'cpp')
+  add_project_arguments('/fsanitize=address', language: 'cpp')
+elif cpp.get_id() == 'clang' or cpp.get_id() == 'gcc'
+  add_project_arguments('-Werror=return-type', language: 'cpp')
+endif
+
 # Define Lib
 executable('cadence', 
     tvg_sandbox_src,

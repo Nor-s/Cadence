@@ -436,7 +436,6 @@ static void Update(ShapeComponent& shape, RectPath& path)
 	const float y = path.position.y - path.scale.y * 0.5f;
 	shape.shape->appendRect(x, y, path.scale.x, path.scale.y, path.radius, path.radius);
 }
-// shape.shape->reset();
 
 static void Update(ShapeComponent& shape, SolidFillComponent& fill)
 {

@@ -59,7 +59,6 @@ private:
 	Vec2 mBeforePoint{0.0f, 0.0f};
 	Vec2 mCurrentPoint{0.0f, 0.0f};
 	Vec2 mMovePoint{0.0f, 0.0f};
-	bool mIsDirty = false;
 
 	// state
 	PathPoint::Command mCurrentEditType{PathPoint::Command::LineTo};

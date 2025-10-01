@@ -80,6 +80,8 @@ public:
 
 	const std::list<Entity>& getDrawOrder();
 
+	bool isDirtyCanvas();
+
 	uint32_t mId;
 	Entity mSceneEntity;
 	Scene* rParentScene{nullptr};

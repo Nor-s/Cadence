@@ -77,6 +77,10 @@ public:
 	{
 		return mIsSw;
 	}
+	bool isDirty()
+	{
+		return mIsDirty;
+	}
 	virtual void moveCamera(Vec2 xy);
 
 	Size mSize{};

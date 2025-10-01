@@ -59,6 +59,7 @@ void AnimationCreatorCanvas::onUpdate()
 void AnimationCreatorCanvas::onDestroy()
 {
 	mCanvasScene->destroy();
+	mMainScene->destroy();
 	mControlScene->destroy();
 }
 void AnimationCreatorCanvas::moveCamera(Vec2 xy)

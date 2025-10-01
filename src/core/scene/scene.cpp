@@ -590,4 +590,14 @@ const std::list<Entity>& Scene::getDrawOrder()
 	return mDrawOrder;
 }
 
+bool Scene::isDirtyCanvas()
+{
+	for (auto* canvas : rCanvasList)
+	{
+		if (canvas->isDirty())
+			return true;
+	}
+	return false;
+}
+
 }	 // namespace core

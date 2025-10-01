@@ -41,15 +41,6 @@ EditPath::EditPath(InputController* inputController, core::Scene* scene, Entity 
 	if (mPathIndex == -1)
 		mPathIndex = 0;
 
-	if (!rTarget.isNull())
-	{
-		auto* scene = rTarget.getScene();
-		auto& registry = scene->getRegistry();
-		auto& parentRegistry = scene->rParentScene->getRegistry();
-		registry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
-		parentRegistry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
-	}
-
 	init();
 }
 EditPath::~EditPath()
@@ -57,14 +48,6 @@ EditPath::~EditPath()
 	for (auto& binding : mInputActionBindings)
 	{
 		rInputController->unbinding(binding);
-	}
-	if (!rTarget.isNull())
-	{
-		auto* scene = rTarget.getScene();
-		auto& registry = scene->rParentScene->getRegistry();
-		auto& parentRegistry = scene->rParentScene->getRegistry();
-		registry.on_update<Dirty>().disconnect<&EditPath::onTargetDirty>(*this);
-		parentRegistry.on_update<Dirty>().connect<&EditPath::onTargetDirty>(*this);
 	}
 }
 void EditPath::init()
@@ -79,9 +62,8 @@ void EditPath::onUpdate()
 	{
 		return;
 	}
-	if (mIsDirty)
+	if (rScene->isDirtyCanvas())
 	{
-		mIsDirty = false;
 		auto world = rTarget.getComponent<WorldTransformComponent>();
 		for (int i = 0; i < rPathPoints->size(); i++)
 		{
@@ -94,11 +76,6 @@ void EditPath::onUpdate()
 		updateControlPoint();
 		updatePreview(mMovePoint);
 	}
-}
-
-void EditPath::onTargetDirty(entt::registry& reg, entt::entity e)
-{
-	mIsDirty = true;
 }
 
 bool EditPath::onStartClickLeftMouse(const InputValue& inputValue)
