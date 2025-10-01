@@ -20,6 +20,7 @@ PickMode::PickMode(AnimationCreatorCanvas* canvas)
 
 PickMode::~PickMode()
 {
+	SelectionManager::Hover(rCanvas, Entity());
 }
 
 void PickMode::onUpdate()
@@ -114,6 +115,7 @@ bool PickMode::onInputAttach(const InputValue& inputValue)
 
 bool PickMode::onInputDetach(const InputValue& inputValue)
 {
+	SelectionManager::Hover(rCanvas, Entity());
 	mContext.isLeftMouseDown = false;
 	return false;
 }
