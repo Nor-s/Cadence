@@ -6,6 +6,8 @@ platform = get_option('platform')
 buildtype = get_option('buildtype')
 src_dir = '/'.join(meson.current_source_dir().split('\\'))
 
+
+
 if platform == 'web'
     add_project_arguments('-DRESOURCE_DIR=""', language : 'cpp')
     tvg_config_path = 'build/wasm/subprojects/thorvg'
@@ -20,8 +22,14 @@ if platform == 'web'
       '-sMIN_WEBGL_VERSION=2',
       '--preload-file', '@0@/resources@/'.format(src_dir),
     ]
-    # tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=true', 'loaders=all','savers=all', 'extra=opengl_es,lottie_expressions','partial=false','static=true','threads=false','b_lto=true'])
-    tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=false', 'loaders=all','savers=all', 'extra=opengl_es,lottie_expressions','static=true'])
+    if buildtype == 'release'
+        tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=false', 'loaders=all','savers=all', 'extra=opengl_es,lottie_expressions','static=true'])
+    else
+        wasm_link_args += [
+             '-g', '-gdwarf-5', '-gsplit-dwarf', '-gpubnames', '-O0'
+        ]
+        tvg_proj = subproject('thorvg', default_options:['engines=sw,gl', 'log=true', 'loaders=all','savers=all', 'extra=opengl_es,lottie_expressions','partial=false','static=true','threads=false','b_lto=true'])
+    endif
 else
     add_project_arguments('-DRESOURCE_DIR="@0@/resources"'.format(src_dir),
                       language : 'cpp')

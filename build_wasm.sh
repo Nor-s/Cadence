@@ -1,5 +1,7 @@
 export PATH="/opt/homebrew/bin:$PATH"
 
-meson setup build/wasm --buildtype=release --cross-file wasm.ini --default-library=static -Dplatform=web
+BUILD_TYPE=${1:-debug}
+
+meson setup build/wasm --buildtype=$BUILD_TYPE --cross-file wasm.ini --default-library=static -Dplatform=web
 
 meson compile -C build/wasm
