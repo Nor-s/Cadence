@@ -61,13 +61,13 @@ enum class ChangeOrderType
 	ToBackward
 };
 
-class Entity
+class Entity final
 {
 public:
 	Entity() = default;
 	Entity(Scene* scene, uint32_t id);
 	Entity(Scene* scene);
-	virtual ~Entity() = default;
+	 ~Entity() = default;
 
 	Scene* getScene()
 	{
@@ -104,7 +104,11 @@ public:
 	void removeComponent();
 
 	template <typename T>
-	bool tryRemoveComponent();
+	void tryRemoveComponent();
+
+
+	template <typename T>
+	bool tryRemoveShapeAttComponent();
 
 	template <typename T, typename... Args>
 	bool tryAddComponent(Args&&... args);

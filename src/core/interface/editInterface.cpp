@@ -215,7 +215,7 @@ extern "C"
 	EDIT_API Edit_Result RemoveFillComponent(ENTITY_ID id)
 	{
 		auto entity = Scene::FindEntity(id);
-		if (entity.tryRemoveComponent<SolidFillComponent>())
+		if (entity.tryRemoveShapeAttComponent<SolidFillComponent>())
 		{
 			entity.setDirty(Dirty::Type::Path);
 			return EDIT_RESULT_SUCCESS;
@@ -226,7 +226,7 @@ extern "C"
 	EDIT_API Edit_Result RemoveStrokeComponent(ENTITY_ID id)
 	{
 		auto entity = Scene::FindEntity(id);
-		if (entity.tryRemoveComponent<StrokeComponent>())
+		if (entity.tryRemoveShapeAttComponent<StrokeComponent>())
 		{
 			entity.setDirty(Dirty::Type::Path);
 			return EDIT_RESULT_SUCCESS;

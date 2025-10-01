@@ -41,9 +41,17 @@ void Entity::removeComponent()
 	assert(hasComponent<T>());
 	rScene->mRegistry.remove<T>(mHandle);
 }
+template <typename T>
+void Entity::tryRemoveComponent()
+{
+	if(hasComponent<T>())
+	{
+		rScene->mRegistry.remove<T>(mHandle);
+	}
+}
 
 template <typename T>
-bool Entity::tryRemoveComponent()
+bool Entity::tryRemoveShapeAttComponent()
 {
 	if (hasComponent<T>())
 	{
