@@ -2,6 +2,7 @@
 #define _CORE_ANIMATION_MANAGER_H_
 
 #include <numeric>
+#include <stdint.h>
 
 namespace core
 {

@@ -2,6 +2,7 @@
 #define _CORE_GPU_GL_GL_UTIL_H_
 
 #include <numeric>
+#include <stdint.h>
 
 namespace core::gl::util
 {

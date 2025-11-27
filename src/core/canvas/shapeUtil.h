@@ -109,7 +109,7 @@ static void SetPickInfoType(PickInfo& pickInfo)
 }
 
 template <typename T>
-static bool Pick(T* canvasOrScene, PickInfo& pickInfo, const Vec2& point)
+inline bool Pick(T* canvasOrScene, PickInfo& pickInfo, const Vec2& point)
 {
 	auto& paints = canvasOrScene->paints();
 	bool isPicked = false;
@@ -121,7 +121,7 @@ static bool Pick(T* canvasOrScene, PickInfo& pickInfo, const Vec2& point)
 	return isPicked;
 }
 template <>
-static bool Pick<tvg::Scene>(tvg::Scene* scene, PickInfo& pickInfo, const Vec2& point)
+inline bool Pick<tvg::Scene>(tvg::Scene* scene, PickInfo& pickInfo, const Vec2& point)
 {
 	auto ret = Pick(pickInfo, point, scene, 0);
 	SetPickInfoType(pickInfo);
