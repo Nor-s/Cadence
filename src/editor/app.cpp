@@ -25,6 +25,8 @@ void App::InitInstance(const AppState& state)
 
 void App::DestroyInstance()
 {
+	auto& app = GetInstance();
+	app.shutdown();
 	tvg::Initializer::term();
 }
 
@@ -105,4 +107,23 @@ void App::drawend()
 	{
 		canvas->onDestroy();
 	}
+}
+
+void App::shutdown()
+{
+	setInputController(nullptr);
+
+	for (auto* canvas : mCanvasList)
+	{
+		if (canvas)
+		{
+			canvas->onDestroy();
+			delete canvas;
+		}
+	}
+	mCanvasList.clear();
+
+	mImguiManager.reset();
+	mEventController.reset();
+	mWindow.reset();
 }

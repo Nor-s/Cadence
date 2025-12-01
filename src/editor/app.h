@@ -66,6 +66,8 @@ public:
 	void setInputController(core::InputController* inputController);
 
 private:
+	void shutdown();
+
 	AppState mState;
 	std::unique_ptr<editor::ImGuiManager> mImguiManager;
 	std::unique_ptr<editor::Window> mWindow;
