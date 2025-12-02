@@ -19,7 +19,7 @@ public:
 
 	void translate(const Vec2& xy)
 	{
-		mHandle->translate(xy.x, xy.x);
+		mHandle->translate(xy.x, xy.y);
 	}
 
 	virtual void scale(const Size& size)
